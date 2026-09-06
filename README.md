@@ -8,8 +8,8 @@ Plataforma web académica para publicar, buscar, reservar y gestionar productos 
 
 | Integrante | Rol principal | Responsabilidades |
 |---|---|---|
-| Integrante 1 — completar nombre | Product Owner / Front-end | Priorizar el backlog, validar criterios y liderar Angular/Ionic. |
-| Integrante 2 — completar nombre | Scrum Master / Back-end y datos | Facilitar Scrum y liderar Node.js, API REST y Oracle/SQL. |
+| Integrante 1 — Corali Rodriguez | Product Owner / Front-end | Priorizar el backlog, validar criterios y liderar Angular/Ionic. |
+| Integrante 2 — Lis Cabrera | Scrum Master / Back-end y datos | Facilitar Scrum y liderar Node.js, API REST y Oracle/SQL. |
 
 Ambos integrantes participan en análisis, desarrollo, revisión, pruebas y documentación. Los roles técnicos pueden rotar para compartir conocimiento.
 
