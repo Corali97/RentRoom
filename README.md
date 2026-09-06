@@ -2,108 +2,109 @@
 
 Plataforma web académica para publicar, buscar, reservar y gestionar productos en arriendo.
 
-> Estado actual: preparación del entorno, definición del producto y planificación Scrum. Este repositorio aún no contiene funcionalidades implementadas.
+> **Estado actual: Semana 3 – planificación y diseño inicial.** A la fecha se ha trabajado en la definición del proyecto, levantamiento inicial de requerimientos, Product Backlog, planificación Scrum, definición de tecnologías, estructura del repositorio y diseño inicial. Las funcionalidades del sistema serán implementadas progresivamente durante las siguientes semanas según el cronograma establecido.
 
 ## Equipo
 
-| Integrante | Rol principal | Responsabilidades |
+| Integrante | Área principal | Responsabilidades |
 |---|---|---|
-| Integrante 1 — Corali Rodriguez | Product Owner / Front-end | Priorizar el backlog, validar criterios y liderar Angular/Ionic. |
-| Integrante 2 — Lis Cabrera | Scrum Master / Back-end y datos | Facilitar Scrum y liderar Node.js, API REST y Oracle/SQL. |
+| Corali Rodríguez | Análisis e integración | Análisis de requerimientos, diseño funcional, integración, pruebas funcionales y documentación. |
+| Lis Cabrera Soto | Back-end y datos | Back-end, base de datos, API REST, seguridad y pruebas técnicas. |
 
-Ambos integrantes participan en análisis, desarrollo, revisión, pruebas y documentación. Los roles técnicos pueden rotar para compartir conocimiento.
+Ambas integrantes participan en la planificación, decisiones de arquitectura, revisión de avances, control de calidad y documentación del proyecto.
 
-## Tecnologías previstas
+## Objetivo del proyecto
+
+Desarrollar RentRoom, una plataforma web segura y funcional para la publicación, búsqueda, reserva y gestión de productos en arriendo, integrando una base de datos relacional, servicios API REST y mecanismos de control que permitan administrar de forma centralizada el proceso de arriendo.
+
+## Tecnologías definidas
 
 - Front-end: Angular e Ionic.
-- Back-end: Node.js y API REST.
+- Back-end: Node.js.
+- Integración: API REST.
 - Base de datos: Oracle y SQL.
 - Control de versiones: Git y GitHub.
-- Metodología: Scrum, con Sprints de dos semanas.
+- Gestión del proyecto: Trello.
+- Modelado: Draw.io / StarUML.
+- Metodología: Scrum adaptado a un equipo de dos integrantes.
 
-Las versiones, dependencias y herramientas de scaffolding se decidirán durante el Sprint 1 y se documentarán antes de generar código de aplicación.
-
-## Estructura del repositorio
+## Estructura inicial del repositorio
 
 ```text
 RentRoom/
-├── .github/                 # Plantillas para issues y pull requests
+├── .github/                 # Configuración de GitHub
 ├── backend/                 # Futuro servicio Node.js y API REST
-├── database/                # Diseño, scripts y documentación Oracle/SQL
-│   ├── diagrams/
-│   ├── migrations/
-│   ├── scripts/
-│   └── seeds/
-├── docs/                    # Producto, arquitectura y gestión Scrum
-│   ├── architecture/
-│   ├── product/
-│   └── scrum/
+├── database/                # Diseño y futuros scripts Oracle/SQL
+├── docs/                    # Documentación del proyecto y Scrum
 ├── frontend/                # Futura aplicación Angular/Ionic
 ├── .editorconfig
 ├── .gitignore
 └── README.md
 ```
 
-Cada módulo tendrá su propio README cuando sea inicializado. No se deben guardar credenciales, archivos `.env`, dependencias instaladas ni artefactos compilados.
+Las carpetas de desarrollo representan la estructura planificada. En Semana 3 el proyecto se encuentra todavía en etapa de planificación y diseño inicial, por lo que no se presentan como funcionalidades terminadas.
 
-## Forma de trabajo
+## Metodología Scrum
 
-Se usa una variante simple de GitHub Flow adecuada para dos integrantes:
+El trabajo se organiza mediante Sprints de dos semanas, con una dedicación estimada de 6 horas semanales por integrante.
 
-- `main`: versión estable y demostrable; protegida y sin commits directos.
-- `develop`: integración del trabajo aprobado para el Sprint.
-- `feature/<id>-<descripcion>`: una historia o tarea, creada desde `develop`.
-- `fix/<id>-<descripcion>`: corrección no urgente, creada desde `develop`.
-- `docs/<descripcion>`: documentación y planificación.
-- `hotfix/<descripcion>`: solo para una corrección urgente de `main`.
+Ceremonias consideradas:
 
-Flujo: actualizar `develop` → crear rama corta → commits pequeños → abrir Pull Request hacia `develop` → revisión del otro integrante → ejecutar verificaciones → fusionar. Al cerrar un Sprint estable, se abre un Pull Request de `develop` a `main` y se etiqueta como `v0.<sprint>.0`.
+- **Sprint Planning:** selección y priorización de historias y tareas al inicio de cada Sprint.
+- **Daily Scrum:** coordinación breve del equipo durante el desarrollo.
+- **Sprint Review:** revisión del incremento y cumplimiento de criterios de aceptación.
+- **Sprint Retrospective:** análisis de dificultades, logros y oportunidades de mejora.
 
-Convención sugerida de commits: `tipo(alcance): descripción`, por ejemplo `docs(backlog): agregar criterios de HU-01`. Tipos: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`.
+Para la gestión del Product Backlog y seguimiento se utilizará Trello. GitHub permitirá mantener el control de versiones y evidencias técnicas. El avance de los Sprints se apoyará con un **Burndown Chart**.
 
-## Scrum y cronograma
+## Avance hasta Semana 3
 
-El proyecto se organiza en cuatro Sprints de dos semanas y una semana final de cierre:
+### Semana 1
+- Definición de RentRoom y problemática a resolver.
+- Identificación inicial de usuarios y necesidades.
+- Definición preliminar de alcance y tecnologías.
 
-| Periodo | Objetivo |
+### Semana 2
+- Fundamentación y objetivos del proyecto.
+- Definición de metodología de trabajo.
+- Elaboración del plan de trabajo y cronograma.
+- Product Backlog inicial.
+
+### Semana 3
+- Consolidación de la propuesta del proyecto.
+- Definición de roles y responsabilidades.
+- Revisión de alcance y limitaciones.
+- Relación del proyecto con las competencias de la carrera.
+- Definición de tecnologías y estructura inicial del repositorio.
+- Incorporación de Sprint Planning, Sprint Review, Sprint Retrospective y Burndown Chart al seguimiento metodológico.
+- Inicio del diseño y modelo de datos según el cronograma.
+
+## Planificación general
+
+El cronograma académico contempla nueve semanas:
+
+| Actividad | Periodo planificado |
 |---|---|
-| Sprint 1 — semanas 1 y 2 | Alinear alcance, arquitectura, UX, modelo de datos y contratos de API. |
-| Sprint 2 — semanas 3 y 4 | Construir el primer incremento de acceso y publicación de productos. |
-| Sprint 3 — semanas 5 y 6 | Incorporar búsqueda, detalle y solicitud de reserva. |
-| Sprint 4 — semanas 7 y 8 | Completar gestión, calidad, seguridad y preparación de entrega. |
-| Semana 9 | Validación integral, memoria, presentación y cierre académico. |
+| Requerimientos y Product Backlog | S1–S2 |
+| Diseño y modelo de datos | S2–S3 |
+| Base de datos y autenticación | S3–S4 |
+| Productos, catálogo y disponibilidad | S4–S5 |
+| Reservas y arriendos | S5–S6 |
+| API REST, procedimientos y triggers | S6–S7 |
+| Reportes y pruebas | S7–S8 |
+| Correcciones y documentación | S8–S9 |
+| Entrega y presentación final | S9 |
 
-La fuente de verdad del alcance es el [Product Backlog](docs/product/product-backlog.md). El detalle de ceremonias y entregables está en el [plan de Sprints](docs/scrum/sprint-plan.md), y el seguimiento diario se registra en el [Burndown Chart](docs/scrum/burndown.md).
+> Las actividades posteriores a la Semana 3 corresponden únicamente a **planificación futura** y no indican funcionalidades ya implementadas.
 
-## Ceremonias
+## Control de versiones
 
-- Sprint Planning: al inicio del Sprint; define objetivo, capacidad, historias y tareas.
-- Daily Scrum: 10–15 minutos; coordinación breve entre ambos integrantes.
-- Sprint Review: al final; demostración del incremento y actualización del backlog.
-- Sprint Retrospective: después de la Review; acciones concretas de mejora.
+La rama `main` mantiene la versión estable del proyecto. A medida que comience la implementación se utilizarán ramas de trabajo para desarrollar funcionalidades y realizar correcciones de manera controlada.
 
-## Definition of Ready
+No se deben almacenar credenciales, contraseñas, archivos `.env`, dependencias instaladas ni información sensible en el repositorio.
 
-Una historia puede entrar a un Sprint cuando tiene valor claro, criterios de aceptación verificables, dependencias identificadas, estimación acordada y tamaño abordable dentro del Sprint.
+## Estado de implementación
 
-## Definition of Done
+**Semana 3:** planificación, documentación y diseño inicial en curso.
 
-Una historia está terminada cuando cumple sus criterios, fue revisada mediante Pull Request, cuenta con pruebas acordes al riesgo, no expone secretos, actualiza la documentación necesaria y está integrada en `develop`. Para publicar en `main`, el incremento además debe ser demostrable.
-
-## Inicio rápido (solo organización)
-
-1. Completar nombres y roles del equipo en este archivo.
-2. Crear el repositorio vacío `RentRoom` en GitHub, sin añadir README ni `.gitignore` remotos.
-3. Conectar este repositorio local: `git remote add origin <URL_DEL_REPOSITORIO>`.
-4. Publicar: `git push -u origin main` y luego `git push -u origin develop`.
-5. Proteger `main` y `develop`, exigiendo Pull Request y una aprobación.
-6. Crear los hitos `Sprint 1` a `Sprint 4` y trasladar las historias del backlog a GitHub Issues.
-
-## Documentación
-
-- [Visión y alcance](docs/product/vision-and-scope.md)
-- [Product Backlog](docs/product/product-backlog.md)
-- [Plan de Sprints y ceremonias](docs/scrum/sprint-plan.md)
-- [Plantilla de Burndown Chart](docs/scrum/burndown.md)
-- [Decisiones de arquitectura](docs/architecture/README.md)
-
+Actualmente no se declaran como terminadas las funcionalidades de autenticación, productos, catálogo, reservas, arriendos, garantías, reportes ni API REST. Estas serán desarrolladas progresivamente de acuerdo con el cronograma del proyecto.
