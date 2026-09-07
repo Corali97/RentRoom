@@ -2,7 +2,7 @@
 
 Plataforma web académica para publicar, buscar, reservar y gestionar productos en arriendo.
 
-> **Estado actual: Semana 3 – planificación y diseño inicial.** A la fecha se ha trabajado en la definición del proyecto, levantamiento inicial de requerimientos, Product Backlog, planificación Scrum, definición de tecnologías, estructura del repositorio y diseño inicial. Las funcionalidades del sistema serán implementadas progresivamente durante las siguientes semanas según el cronograma establecido.
+> **Estado actual: Semana 4 – análisis, visión del producto y diseño inicial.** A la fecha se ha trabajado en la definición del proyecto, requerimientos y Product Backlog, planificación Scrum, arquitectura inicial, modelo de datos, análisis del caso, definición del Squad, mapa mental, mapa de actores, Product Goal y visión del producto. Las historias de usuario del Product Backlog continúan planificadas y no se presentan como funcionalidades implementadas.
 
 ## Equipo
 
@@ -25,16 +25,16 @@ Desarrollar RentRoom, una plataforma web segura y funcional para la publicación
 - Base de datos: Oracle y SQL.
 - Control de versiones: Git y GitHub.
 - Gestión del proyecto: Trello.
-- Modelado: Draw.io / StarUML.
+- Modelado: Draw.io / Lucidchart / StarUML.
 - Metodología: Scrum adaptado a un equipo de dos integrantes.
 
-## Estructura inicial del repositorio
+## Estructura del repositorio
 
 ```text
 RentRoom/
 ├── .github/                 # Configuración de GitHub
 ├── backend/                 # Futuro servicio Node.js y API REST
-├── database/                # Diseño y futuros scripts Oracle/SQL
+├── database/                # Modelo de datos y futuros scripts Oracle/SQL
 ├── docs/                    # Documentación del proyecto y Scrum
 ├── frontend/                # Futura aplicación Angular/Ionic
 ├── .editorconfig
@@ -42,7 +42,7 @@ RentRoom/
 └── README.md
 ```
 
-Las carpetas de desarrollo representan la estructura planificada. En Semana 3 el proyecto se encuentra todavía en etapa de planificación y diseño inicial, por lo que no se presentan como funcionalidades terminadas.
+Las carpetas de desarrollo representan la estructura planificada. En Semana 4 el proyecto continúa en las etapas de análisis, planificación y diseño inicial; las funcionalidades del sistema todavía no se declaran como implementadas.
 
 ## Metodología Scrum
 
@@ -55,9 +55,9 @@ Ceremonias consideradas:
 - **Sprint Review:** revisión del incremento y cumplimiento de criterios de aceptación.
 - **Sprint Retrospective:** análisis de dificultades, logros y oportunidades de mejora.
 
-Para la gestión del Product Backlog y seguimiento se utilizará Trello. GitHub permitirá mantener el control de versiones y evidencias técnicas. El avance de los Sprints se apoyará con un **Burndown Chart**.
+Para la gestión del Product Backlog y seguimiento se utiliza Trello. GitHub mantiene el control de versiones y las evidencias técnicas. El seguimiento del Sprint se apoya mediante un **Burndown Chart**.
 
-## Avance hasta Semana 3
+## Avance hasta Semana 4
 
 ### Semana 1
 - Definición de RentRoom y problemática a resolver.
@@ -76,8 +76,55 @@ Para la gestión del Product Backlog y seguimiento se utilizará Trello. GitHub 
 - Revisión de alcance y limitaciones.
 - Relación del proyecto con las competencias de la carrera.
 - Definición de tecnologías y estructura inicial del repositorio.
-- Incorporación de Sprint Planning, Sprint Review, Sprint Retrospective y Burndown Chart al seguimiento metodológico.
-- Inicio del diseño y modelo de datos según el cronograma.
+- Sprint Planning, Sprint Review y Sprint Retrospective del Sprint 1.
+- Elaboración del Burndown Chart para seguimiento del Sprint 1.
+- Diseño de arquitectura inicial.
+- Elaboración del modelo de datos inicial.
+
+### Semana 4
+- Análisis del caso RentRoom y su problemática.
+- Definición del Squad y responsabilidades según Scrum.
+- Elaboración del mapa mental del proyecto.
+- Elaboración del mapa de actores según influencia e interés.
+- Definición del Product Goal.
+- Definición de la visión del producto.
+- Identificación de los cuatro pilares: grupo objetivo, necesidades, producto/servicio y valor entregado.
+- Definición de la proyección futura de RentRoom.
+- Consolidación del modelo de datos inicial con las entidades USUARIO, PRODUCTO, UNIDAD_PRODUCTO, RESERVA, ARRIENDO, GARANTIA, DEVOLUCION y DANO.
+
+## Modelo de datos inicial
+
+El modelo inicial considera las entidades necesarias para representar el ciclo principal de arriendo y mantener trazabilidad sobre productos, unidades, reservas, garantías, devoluciones y posibles daños.
+
+Relaciones principales planificadas:
+
+- USUARIO publica PRODUCTO.
+- PRODUCTO tiene UNIDAD_PRODUCTO.
+- USUARIO realiza RESERVA.
+- UNIDAD_PRODUCTO se asocia a RESERVA.
+- RESERVA puede generar ARRIENDO.
+- ARRIENDO puede poseer GARANTIA.
+- ARRIENDO puede finalizar con DEVOLUCION.
+- DEVOLUCION puede registrar DANO.
+
+Este modelo corresponde al **diseño inicial** y podrá ajustarse durante la implementación y validación de la base de datos.
+
+## Product Goal
+
+Desarrollar una plataforma web que permita publicar, buscar, reservar y gestionar productos en arriendo de forma segura, organizada y trazable, orientando el desarrollo progresivo del producto mediante los Sprints y el Product Backlog.
+
+## Visión del producto
+
+Facilitar el acceso al arriendo de productos mediante una plataforma confiable, segura y accesible que conecte propietarios y clientes.
+
+La visión se organiza en cuatro pilares:
+
+1. **Grupo objetivo:** personas que necesitan productos de uso ocasional y propietarios que desean ofrecer productos en arriendo.
+2. **Necesidades:** encontrar productos disponibles, reservar de forma segura y disponer de control de garantías, entregas y devoluciones.
+3. **Producto / servicio:** plataforma web para publicar, buscar, reservar y gestionar productos en arriendo de manera centralizada.
+4. **Valor entregado:** proceso de arriendo organizado, seguro y trazable que reduce costos y facilita el aprovechamiento de productos.
+
+Como proyección, RentRoom busca consolidarse como una alternativa digital confiable y ampliar progresivamente sus funcionalidades.
 
 ## Planificación general
 
@@ -95,16 +142,16 @@ El cronograma académico contempla nueve semanas:
 | Correcciones y documentación | S8–S9 |
 | Entrega y presentación final | S9 |
 
-> Las actividades posteriores a la Semana 3 corresponden únicamente a **planificación futura** y no indican funcionalidades ya implementadas.
+> Las funcionalidades que todavía no han sido desarrolladas permanecen como trabajo planificado en el Product Backlog. Su presencia en el cronograma no implica que estén implementadas.
 
 ## Control de versiones
 
-La rama `main` mantiene la versión estable del proyecto. A medida que comience la implementación se utilizarán ramas de trabajo para desarrollar funcionalidades y realizar correcciones de manera controlada.
+La rama `main` mantiene la versión estable del proyecto. A medida que avance la implementación se podrán utilizar ramas de trabajo para desarrollar funcionalidades y realizar correcciones de manera controlada.
 
 No se deben almacenar credenciales, contraseñas, archivos `.env`, dependencias instaladas ni información sensible en el repositorio.
 
 ## Estado de implementación
 
-**Semana 3:** planificación, documentación y diseño inicial en curso.
+**Semana 4:** análisis, documentación, seguimiento Scrum, visión del producto y diseño inicial completados según el avance académico.
 
-Actualmente no se declaran como terminadas las funcionalidades de autenticación, productos, catálogo, reservas, arriendos, garantías, reportes ni API REST. Estas serán desarrolladas progresivamente de acuerdo con el cronograma del proyecto.
+Las historias de usuario relacionadas con registro, inicio de sesión, perfiles, publicación de productos, catálogo, disponibilidad, reservas, arriendos, garantías, reportes y API REST permanecen en el Product Backlog hasta que su implementación y validación sean realizadas.
