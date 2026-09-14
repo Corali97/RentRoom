@@ -32,6 +32,11 @@ export class UsuarioPage implements OnInit {
       return;
     }
 
+    if (!this.isValidEmail(this.loginEmail)) {
+      this.showMessage('Ingresa un correo electrónico válido.', 'error');
+      return;
+    }
+
     const result = this.authService.login(this.loginEmail, this.loginPassword);
     this.showMessage(result.message, result.ok ? 'success' : 'error');
     if (result.ok) {
@@ -44,6 +49,11 @@ export class UsuarioPage implements OnInit {
     this.message = '';
     if (!this.fullName.trim() || !this.registerEmail.trim() || !this.registerPassword) {
       this.showMessage('Completa todos los campos.', 'error');
+      return;
+    }
+
+    if (!this.isValidEmail(this.registerEmail)) {
+      this.showMessage('Ingresa un correo electrónico válido.', 'error');
       return;
     }
 
@@ -70,6 +80,8 @@ export class UsuarioPage implements OnInit {
     if (updated) {
       this.currentUser = updated;
       this.showMessage('Perfil actualizado correctamente.', 'success');
+    } else {
+      this.showMessage('No se pudo actualizar el perfil. Vuelve a iniciar sesión.', 'error');
     }
   }
 
@@ -89,5 +101,9 @@ export class UsuarioPage implements OnInit {
   private showMessage(message: string, type: 'success' | 'error') {
     this.message = message;
     this.messageType = type;
+  }
+
+  private isValidEmail(email: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   }
 }
