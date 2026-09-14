@@ -1,0 +1,85 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title><span class="brand-mark">R</span> RentRoom</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment value="usuario" mode="md">
+      <ion-segment-button value="home" routerLink="/home">
+        <ion-icon name="home-outline"></ion-icon>
+        <ion-label>Inicio</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="catalogo" routerLink="/catalogo">
+        <ion-icon name="grid-outline"></ion-icon>
+        <ion-label>Catálogo</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="usuario" routerLink="/usuario">
+        <ion-icon name="person-outline"></ion-icon>
+        <ion-label>Usuario</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <main class="auth-page">
+    <section class="auth-intro">
+      <p class="eyebrow">Tu perfil en RentRoom</p>
+      <h1>Vuelve a tus<br><em>prendas favoritas.</em></h1>
+      <p>Ingresa a tu cuenta para administrar tus reservas o crea una nueva para comenzar a arrendar.</p>
+    </section>
+
+    <section class="auth-card">
+      <ion-segment [(ngModel)]="authMode" mode="md" class="auth-segment">
+        <ion-segment-button value="login">
+          <ion-label>Iniciar sesión</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="register">
+          <ion-label>Crear cuenta</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+
+      <form *ngIf="authMode === 'login'; else registerForm" (ngSubmit)="submitLogin()">
+        <div class="form-heading">
+          <h2>Bienvenido de vuelta</h2>
+          <p>Ingresa tus datos para continuar.</p>
+        </div>
+        <label class="field-label" for="login-email">Correo electrónico</label>
+        <ion-item>
+          <ion-icon slot="start" name="mail-outline"></ion-icon>
+          <ion-input id="login-email" type="email" name="loginEmail" [(ngModel)]="loginEmail" required></ion-input>
+        </ion-item>
+        <label class="field-label" for="login-password">Contraseña</label>
+        <ion-item>
+          <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+          <ion-input id="login-password" type="password" name="loginPassword" [(ngModel)]="loginPassword" required></ion-input>
+        </ion-item>
+        <ion-button expand="block" type="submit" class="auth-button">Iniciar sesión</ion-button>
+      </form>
+
+      <ng-template #registerForm>
+        <form (ngSubmit)="submitRegister()">
+          <div class="form-heading">
+            <h2>Comienza a arrendar</h2>
+            <p>Crea tu cuenta gratis y descubre el catálogo.</p>
+          </div>
+          <label class="field-label" for="full-name">Nombre completo</label>
+          <ion-item>
+            <ion-icon slot="start" name="person-outline"></ion-icon>
+            <ion-input id="full-name" type="text" name="fullName" [(ngModel)]="fullName" required></ion-input>
+          </ion-item>
+          <label class="field-label" for="register-email">Correo electrónico</label>
+          <ion-item>
+            <ion-icon slot="start" name="mail-outline"></ion-icon>
+            <ion-input id="register-email" type="email" name="registerEmail" [(ngModel)]="registerEmail" required></ion-input>
+          </ion-item>
+          <label class="field-label" for="register-password">Contraseña</label>
+          <ion-item>
+            <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+            <ion-input id="register-password" type="password" name="registerPassword" [(ngModel)]="registerPassword" required></ion-input>
+          </ion-item>
+          <ion-button expand="block" type="submit" class="auth-button">Crear cuenta</ion-button>
+        </form>
+      </ng-template>
+    </section>
+  </main>
+</ion-content>

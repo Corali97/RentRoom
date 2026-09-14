@@ -1,0 +1,68 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title><span class="brand-mark">R</span> RentRoom</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment value="home" mode="md">
+      <ion-segment-button value="home" routerLink="/home">
+        <ion-icon name="home-outline"></ion-icon>
+        <ion-label>Inicio</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="catalogo" routerLink="/catalogo">
+        <ion-icon name="grid-outline"></ion-icon>
+        <ion-label>Catálogo</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="usuario" routerLink="/usuario">
+        <ion-icon name="person-outline"></ion-icon>
+        <ion-label>Usuario</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <section class="hero-section">
+    <div class="hero-copy">
+      <h1>¿Necesitas una prenda?<br><em>Acá la encuentras.</em></h1>
+      <p class="hero-text">Encuentra prendas especiales para cada ocasión, úsalas el tiempo que necesites.</p>
+      <ion-button class="hero-button" routerLink="/catalogo">
+        Explorar catálogo
+        <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+      </ion-button>
+    </div>
+  </section>
+
+  <section class="intro-section">
+    <div class="section-heading">
+      <h2>Menos compras.<br><em>Más posibilidades.</em></h2>
+    </div>
+    <p class="intro-copy">RentRoom hace del arriendo de ropa una experiencia simple, segura y accesible. Descubre prendas únicas, revisa todos sus detalles y reserva sin tener que comprarlas.</p>
+  </section>
+
+  <section class="steps-section">
+    <div class="section-heading compact-heading">
+      <h2>Arrendar en<br><em>cinco pasos.</em></h2>
+    </div>
+    <div class="steps-list">
+      <div class="step"><span>01</span><div><h3>Busca tu prenda</h3><p>Filtra por categoría, talla, precio o fecha.</p></div></div>
+      <div class="step"><span>02</span><div><h3>Revisa los detalles</h3><p>Conoce el estado y la disponibilidad.</p></div></div>
+      <div class="step"><span>03</span><div><h3>Reserva online</h3><p>Elige tus fechas y confirma tu solicitud.</p></div></div>
+      <div class="step"><span>04</span><div><h3>Retira en showroom</h3><p>Pruébate la prenda antes de llevártela.</p></div></div>
+      <div class="step"><span>05</span><div><h3>Devuelve a tiempo</h3><p>Nosotros revisamos lo demás.</p></div></div>
+    </div>
+  </section>
+
+  <section class="faq-section">
+    <div class="section-heading compact-heading">
+      <h2>Preguntas<br><em>frecuentes.</em></h2>
+    </div>
+    <div class="steps-list">
+      <div class="step"><span>01</span><div><h3>¿Necesito crear una cuenta?</h3><p>Sí. Necesitas una cuenta para realizar y administrar tus reservas.</p></div></div>
+      <div class="step"><span>02</span><div><h3>¿Qué pasa si la prenda se daña?</h3><p>La prenda será revisada al devolverla. Según el daño, podría aplicarse un descuento de la garantía.</p></div></div>
+      <div class="step"><span>03</span><div><h3>¿Cuándo recupero mi garantía?</h3><p>Después de la devolución y revisión de la prenda, se gestionará la devolución cuando corresponda.</p></div></div>
+    </div>
+  </section>
+</ion-content>
+
+
+
