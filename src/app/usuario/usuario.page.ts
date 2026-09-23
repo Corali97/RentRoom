@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthService, RentRoomUser } from '../services/auth.service';
+import { AuthService, RentRoomUser, UserRole } from '../services/auth.service';
 
 @Component({
   selector: 'app-usuario',
@@ -14,6 +14,7 @@ export class UsuarioPage implements OnInit {
   fullName = '';
   registerEmail = '';
   registerPassword = '';
+  registerRole: UserRole = 'CLIENTE';
   currentUser: RentRoomUser | null = null;
   profileName = '';
   message = '';
@@ -21,61 +22,41 @@ export class UsuarioPage implements OnInit {
 
   constructor(private authService: AuthService) {}
 
-  ngOnInit() {
-    this.loadSession();
-  }
+  ngOnInit() { this.loadSession(); }
 
   submitLogin() {
     this.message = '';
     if (!this.loginEmail.trim() || !this.loginPassword) {
-      this.showMessage('Completa correo y contraseña.', 'error');
-      return;
+      this.showMessage('Completa correo y contraseña.', 'error'); return;
     }
-
     if (!this.isValidEmail(this.loginEmail)) {
-      this.showMessage('Ingresa un correo electrónico válido.', 'error');
-      return;
+      this.showMessage('Ingresa un correo electrónico válido.', 'error'); return;
     }
-
     const result = this.authService.login(this.loginEmail, this.loginPassword);
     this.showMessage(result.message, result.ok ? 'success' : 'error');
-    if (result.ok) {
-      this.loginPassword = '';
-      this.loadSession();
-    }
+    if (result.ok) { this.loginPassword = ''; this.loadSession(); }
   }
 
   submitRegister() {
     this.message = '';
     if (!this.fullName.trim() || !this.registerEmail.trim() || !this.registerPassword) {
-      this.showMessage('Completa todos los campos.', 'error');
-      return;
+      this.showMessage('Completa todos los campos.', 'error'); return;
     }
-
     if (!this.isValidEmail(this.registerEmail)) {
-      this.showMessage('Ingresa un correo electrónico válido.', 'error');
-      return;
+      this.showMessage('Ingresa un correo electrónico válido.', 'error'); return;
     }
-
     if (this.registerPassword.length < 6) {
-      this.showMessage('La contraseña debe tener al menos 6 caracteres.', 'error');
-      return;
+      this.showMessage('La contraseña debe tener al menos 6 caracteres.', 'error'); return;
     }
-
-    const result = this.authService.register(this.fullName, this.registerEmail, this.registerPassword);
+    const result = this.authService.register(this.fullName, this.registerEmail, this.registerPassword, this.registerRole);
     this.showMessage(result.message, result.ok ? 'success' : 'error');
-    if (result.ok) {
-      this.registerPassword = '';
-      this.loadSession();
-    }
+    if (result.ok) { this.registerPassword = ''; this.loadSession(); }
   }
 
   saveProfile() {
     if (!this.profileName.trim()) {
-      this.showMessage('El nombre no puede quedar vacío.', 'error');
-      return;
+      this.showMessage('El nombre no puede quedar vacío.', 'error'); return;
     }
-
     const updated = this.authService.updateProfile(this.profileName);
     if (updated) {
       this.currentUser = updated;
@@ -91,6 +72,10 @@ export class UsuarioPage implements OnInit {
     this.profileName = '';
     this.message = '';
     this.authMode = 'login';
+  }
+
+  roleLabel(): string {
+    return this.currentUser ? this.authService.roleLabel(this.currentUser.role) : '';
   }
 
   private loadSession() {
