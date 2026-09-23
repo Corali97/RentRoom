@@ -38,7 +38,7 @@
 
       <ng-template #registerForm>
         <form (ngSubmit)="submitRegister()">
-          <div class="form-heading"><h2>Comienza a usar RentRoom</h2><p>Crea tu cuenta para acceder a las funcionalidades del sistema.</p></div>
+          <div class="form-heading"><h2>Comienza a usar RentRoom</h2><p>Crea tu cuenta y selecciona el perfil con el que utilizarás la plataforma.</p></div>
           <label class="field-label" for="full-name">Nombre completo</label>
           <ion-item><ion-icon slot="start" name="person-outline"></ion-icon><ion-input id="full-name" type="text" name="fullName" [(ngModel)]="fullName" required></ion-input></ion-item>
           <label class="field-label" for="register-email">Correo electrónico</label>
@@ -46,6 +46,11 @@
           <label class="field-label" for="register-password">Contraseña</label>
           <ion-item><ion-icon slot="start" name="lock-closed-outline"></ion-icon><ion-input id="register-password" type="password" name="registerPassword" [(ngModel)]="registerPassword" required></ion-input></ion-item>
           <ion-note>La contraseña debe contener al menos 6 caracteres.</ion-note>
+          <label class="field-label">Tipo de usuario</label>
+          <ion-segment [(ngModel)]="registerRole" name="registerRole" mode="md">
+            <ion-segment-button value="CLIENTE"><ion-label>Cliente</ion-label></ion-segment-button>
+            <ion-segment-button value="PROPIETARIO"><ion-label>Propietario</ion-label></ion-segment-button>
+          </ion-segment>
           <ion-button expand="block" type="submit" class="auth-button">Crear cuenta</ion-button>
         </form>
       </ng-template>
@@ -55,6 +60,7 @@
       <section class="auth-card">
         <div class="form-heading"><h2>Mi perfil</h2><p>Actualiza tus datos personales.</p></div>
         <p *ngIf="message" [class]="messageType === 'success' ? 'ion-text-success' : 'ion-text-danger'">{{ message }}</p>
+        <ion-chip color="primary"><ion-icon name="shield-checkmark-outline"></ion-icon><ion-label>Perfil: {{ roleLabel() }}</ion-label></ion-chip>
         <label class="field-label" for="profile-name">Nombre completo</label>
         <ion-item><ion-icon slot="start" name="person-outline"></ion-icon><ion-input id="profile-name" name="profileName" [(ngModel)]="profileName"></ion-input></ion-item>
         <label class="field-label">Correo electrónico</label>
