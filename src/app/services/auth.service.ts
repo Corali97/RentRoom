@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
 
+export type UserRole = 'CLIENTE' | 'PROPIETARIO';
+
 export interface RentRoomUser {
   fullName: string;
   email: string;
+  role: UserRole;
 }
 
 interface StoredUser extends RentRoomUser {
@@ -14,7 +17,7 @@ export class AuthService {
   private readonly usersKey = 'rentroom_users';
   private readonly sessionKey = 'rentroom_session';
 
-  register(fullName: string, email: string, password: string): { ok: boolean; message: string } {
+  register(fullName: string, email: string, password: string, role: UserRole): { ok: boolean; message: string } {
     const normalizedEmail = email.trim().toLowerCase();
     const users = this.getUsers();
 
@@ -22,9 +25,10 @@ export class AuthService {
       return { ok: false, message: 'El correo ya se encuentra registrado.' };
     }
 
-    users.push({ fullName: fullName.trim(), email: normalizedEmail, password });
+    const newUser: StoredUser = { fullName: fullName.trim(), email: normalizedEmail, password, role };
+    users.push(newUser);
     localStorage.setItem(this.usersKey, JSON.stringify(users));
-    localStorage.setItem(this.sessionKey, JSON.stringify({ fullName: fullName.trim(), email: normalizedEmail }));
+    this.saveSession(newUser);
     return { ok: true, message: 'Cuenta creada correctamente.' };
   }
 
@@ -36,13 +40,17 @@ export class AuthService {
       return { ok: false, message: 'Correo o contraseña incorrectos.' };
     }
 
-    localStorage.setItem(this.sessionKey, JSON.stringify({ fullName: user.fullName, email: user.email }));
-    return { ok: true, message: 'Sesión iniciada correctamente.' };
+    this.saveSession(user);
+    return { ok: true, message: `Sesión iniciada como ${this.roleLabel(user.role)}.` };
   }
 
   getCurrentUser(): RentRoomUser | null {
     const raw = localStorage.getItem(this.sessionKey);
     return raw ? JSON.parse(raw) as RentRoomUser : null;
+  }
+
+  hasRole(role: UserRole): boolean {
+    return this.getCurrentUser()?.role === role;
   }
 
   updateProfile(fullName: string): RentRoomUser | null {
@@ -56,7 +64,7 @@ export class AuthService {
     users[index].fullName = fullName.trim();
     localStorage.setItem(this.usersKey, JSON.stringify(users));
 
-    const updated = { fullName: fullName.trim(), email: current.email };
+    const updated: RentRoomUser = { fullName: fullName.trim(), email: current.email, role: current.role };
     localStorage.setItem(this.sessionKey, JSON.stringify(updated));
     return updated;
   }
@@ -65,8 +73,20 @@ export class AuthService {
     localStorage.removeItem(this.sessionKey);
   }
 
+  roleLabel(role: UserRole): string {
+    return role === 'PROPIETARIO' ? 'Propietario' : 'Cliente';
+  }
+
+  private saveSession(user: StoredUser): void {
+    const session: RentRoomUser = { fullName: user.fullName, email: user.email, role: user.role ?? 'CLIENTE' };
+    localStorage.setItem(this.sessionKey, JSON.stringify(session));
+  }
+
   private getUsers(): StoredUser[] {
     const raw = localStorage.getItem(this.usersKey);
-    return raw ? JSON.parse(raw) as StoredUser[] : [];
+    if (!raw) return [];
+
+    const users = JSON.parse(raw) as StoredUser[];
+    return users.map(user => ({ ...user, role: user.role ?? 'CLIENTE' }));
   }
 }
