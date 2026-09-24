@@ -1,34 +1,21 @@
-<ion-header [translucent]="true">
-  <ion-toolbar color="primary">
-    <ion-title>RentRoom - Catálogo</ion-title>
-  </ion-toolbar>
-  <ion-toolbar>
-    <ion-segment value="catalogo">
-      <ion-segment-button value="home" routerLink="/home">
-        <ion-icon name="home-outline"></ion-icon>
-        <ion-label>Inicio</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="catalogo" routerLink="/catalogo">
-        <ion-icon name="grid-outline"></ion-icon>
-        <ion-label>Catálogo</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="usuario" routerLink="/usuario">
-        <ion-icon name="person-outline"></ion-icon>
-        <ion-label>Usuario</ion-label>
-      </ion-segment-button>
-    </ion-segment>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Catálogo</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <div class="ion-padding">
-    <h2>Catálogo</h2>
-    <p>Aquí se mostrarán los elementos del catálogo.</p>
-  </div>
-</ion-content>
+<ion-header><ion-toolbar color="primary"><ion-title>RentRoom - Catálogo</ion-title></ion-toolbar></ion-header>
+<ion-content><div class="ion-padding">
+<h1>Catálogo de productos</h1><p>Explora productos disponibles para arriendo.</p>
+<ion-card *ngIf="isOwner"><ion-card-header><ion-card-title>{{ editingId ? 'Editar producto' : 'Publicar producto' }}</ion-card-title></ion-card-header><ion-card-content>
+<ion-item><ion-input label="Nombre" labelPlacement="stacked" [(ngModel)]="form.name"></ion-input></ion-item>
+<ion-item><ion-textarea label="Descripción" labelPlacement="stacked" [(ngModel)]="form.description"></ion-textarea></ion-item>
+<ion-item><ion-input label="Categoría" labelPlacement="stacked" [(ngModel)]="form.category"></ion-input></ion-item>
+<ion-item><ion-input label="Valor de compra" labelPlacement="stacked" type="number" [(ngModel)]="form.purchaseValue"></ion-input></ion-item>
+<ion-item><ion-input label="Valor de arriendo" labelPlacement="stacked" type="number" [(ngModel)]="form.rentalValue"></ion-input></ion-item>
+<ion-item><ion-input label="Garantía" labelPlacement="stacked" type="number" [(ngModel)]="form.guarantee"></ion-input></ion-item>
+<ion-item><ion-input label="URL de imagen" labelPlacement="stacked" [(ngModel)]="form.imageUrl"></ion-input></ion-item>
+<ion-button expand="block" (click)="saveProduct()">{{ editingId ? 'Guardar cambios' : 'Publicar producto' }}</ion-button>
+<ion-button *ngIf="editingId" expand="block" fill="outline" (click)="cancelEdit()">Cancelar</ion-button>
+</ion-card-content></ion-card>
+<ion-note *ngIf="!isOwner">Para publicar debes iniciar sesión con perfil Propietario.</ion-note><p *ngIf="message"><strong>{{ message }}</strong></p>
+<ion-grid *ngIf="products.length"><ion-row><ion-col size="12" size-md="6" *ngFor="let product of products"><ion-card>
+<img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.name"><ion-card-header><ion-card-subtitle>{{ product.category }}</ion-card-subtitle><ion-card-title>{{ product.name }}</ion-card-title></ion-card-header>
+<ion-card-content><p>{{ product.description }}</p><p><strong>Arriendo:</strong> ${{ product.rentalValue }}</p><p><strong>Garantía:</strong> ${{ product.guarantee }}</p><ion-chip color="success">Disponible</ion-chip>
+<div *ngIf="isMine(product)"><ion-button size="small" fill="outline" (click)="editProduct(product)">Editar</ion-button><ion-button size="small" color="danger" fill="outline" (click)="deleteProduct(product)">Eliminar</ion-button></div>
+</ion-card-content></ion-card></ion-col></ion-row></ion-grid><ion-card *ngIf="!products.length"><ion-card-content>Aún no hay productos publicados.</ion-card-content></ion-card>
+</div></ion-content>
