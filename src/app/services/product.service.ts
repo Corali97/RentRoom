@@ -16,9 +16,13 @@ export interface RentRoomProduct {
 @Injectable({ providedIn: 'root' })
 export class ProductService {
   private readonly key = 'rentroom_products';
-  getAll(): RentRoomProduct[] { const raw = localStorage.getItem(this.key); const items = raw ? JSON.parse(raw) : []; return items.filter((p: RentRoomProduct) => p.status === 'DISPONIBLE'); }
+  private getStoredProducts(): RentRoomProduct[] {
+    const raw = localStorage.getItem(this.key);
+    return raw ? JSON.parse(raw) : [];
+  }
+  getAll(): RentRoomProduct[] { return this.getStoredProducts().filter(p => p.status === 'DISPONIBLE'); }
   save(items: RentRoomProduct[]): void { localStorage.setItem(this.key, JSON.stringify(items)); }
-  create(data: any): void { const raw = localStorage.getItem(this.key); const items = raw ? JSON.parse(raw) : []; items.push({ ...data, id: Date.now(), status: 'DISPONIBLE' }); this.save(items); }
-  update(product: RentRoomProduct): void { const items = this.getAll(); const i = items.findIndex(p => p.id === product.id); if (i >= 0) { items[i] = product; this.save(items); } }
-  remove(id: number, ownerEmail: string): void { this.save(this.getAll().filter(p => !(p.id === id && p.ownerEmail === ownerEmail))); }
+  create(data: any): void { const items = this.getStoredProducts(); items.push({ ...data, id: Date.now(), status: 'DISPONIBLE' }); this.save(items); }
+  update(product: RentRoomProduct): void { const items = this.getStoredProducts(); const i = items.findIndex(p => p.id === product.id); if (i >= 0) { items[i] = product; this.save(items); } }
+  remove(id: number, ownerEmail: string): void { this.save(this.getStoredProducts().filter(p => !(p.id === id && p.ownerEmail === ownerEmail))); }
 }
