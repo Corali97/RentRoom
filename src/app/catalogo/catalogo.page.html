@@ -1,4 +1,13 @@
-<ion-header><ion-toolbar color="primary"><ion-title>RentRoom - Catálogo</ion-title></ion-toolbar></ion-header>
+<ion-header>
+  <ion-toolbar color="primary"><ion-title>RentRoom - Catálogo</ion-title></ion-toolbar>
+  <ion-toolbar>
+    <ion-segment value="catalogo" mode="md">
+      <ion-segment-button value="home" routerLink="/home"><ion-icon name="home-outline"></ion-icon><ion-label>Inicio</ion-label></ion-segment-button>
+      <ion-segment-button value="catalogo" routerLink="/catalogo"><ion-icon name="grid-outline"></ion-icon><ion-label>Catálogo</ion-label></ion-segment-button>
+      <ion-segment-button value="usuario" routerLink="/usuario"><ion-icon name="person-outline"></ion-icon><ion-label>Usuario</ion-label></ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
 <ion-content><div class="ion-padding">
 <h1>Catálogo de productos</h1><p>Explora productos disponibles para arriendo.</p>
 <ion-card *ngIf="isOwner"><ion-card-header><ion-card-title>{{ editingId ? 'Editar producto' : 'Publicar producto' }}</ion-card-title></ion-card-header><ion-card-content>
