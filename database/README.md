@@ -1,6 +1,8 @@
-# Modelo de datos RentRoom - Semana 5
+# Modelo de datos RentRoom
 
 Este directorio contiene el avance del esquema relacional de RentRoom.
+
+En la entrega de Semana 7 se incluye el esquema desarrollado hasta Semana 6 como antecedente. Las nuevas funcionalidades del Sprint II utilizan almacenamiento local; todavía no están integradas con esta base de datos.
 
 ## Entidades iniciales
 - **USUARIO:** registro, autenticación y perfil.
