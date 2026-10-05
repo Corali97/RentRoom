@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { AuthService, RentRoomUser, UserRole } from '../services/auth.service';
+import { ApiError, errorMessage } from '../services/api';
 
 @Component({
   selector: 'app-usuario',
@@ -7,7 +8,7 @@ import { AuthService, RentRoomUser, UserRole } from '../services/auth.service';
   styleUrls: ['./usuario.page.scss'],
   standalone: false,
 })
-export class UsuarioPage implements OnInit {
+export class UsuarioPage {
   authMode: 'login' | 'register' = 'login';
   loginEmail = '';
   loginPassword = '';
@@ -19,12 +20,28 @@ export class UsuarioPage implements OnInit {
   profileName = '';
   message = '';
   messageType: 'success' | 'error' = 'success';
+  loading = true;
+  busy = false;
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef) {}
 
-  ngOnInit() { this.loadSession(); }
+  async ionViewWillEnter(): Promise<void> {
+    this.loading = true;
+    this.message = '';
+    this.currentUser = null;
+    try {
+      this.currentUser = await this.authService.refreshSession();
+      this.profileName = this.currentUser?.fullName ?? '';
+    } catch (error) {
+      this.showMessage(errorMessage(error), 'error');
+    } finally {
+      this.loading = false;
+      this.changeDetector.markForCheck();
+    }
+  }
 
-  submitLogin() {
+  async submitLogin(): Promise<void> {
+    if (this.busy || this.loading) return;
     this.message = '';
     if (!this.loginEmail.trim() || !this.loginPassword) {
       this.showMessage('Completa correo y contraseña.', 'error'); return;
@@ -32,12 +49,23 @@ export class UsuarioPage implements OnInit {
     if (!this.isValidEmail(this.loginEmail)) {
       this.showMessage('Ingresa un correo electrónico válido.', 'error'); return;
     }
-    const result = this.authService.login(this.loginEmail, this.loginPassword);
-    this.showMessage(result.message, result.ok ? 'success' : 'error');
-    if (result.ok) { this.loginPassword = ''; this.loadSession(); }
+    this.busy = true;
+    try {
+      const result = await this.authService.login(this.loginEmail, this.loginPassword);
+      this.currentUser = result.user;
+      this.profileName = result.user.fullName;
+      this.loginPassword = '';
+      this.showMessage(result.message, 'success');
+    } catch (error) {
+      this.showMessage(errorMessage(error), 'error');
+    } finally {
+      this.busy = false;
+      this.changeDetector.markForCheck();
+    }
   }
 
-  submitRegister() {
+  async submitRegister(): Promise<void> {
+    if (this.busy || this.loading) return;
     this.message = '';
     if (!this.fullName.trim() || !this.registerEmail.trim() || !this.registerPassword) {
       this.showMessage('Completa todos los campos.', 'error'); return;
@@ -45,42 +73,64 @@ export class UsuarioPage implements OnInit {
     if (!this.isValidEmail(this.registerEmail)) {
       this.showMessage('Ingresa un correo electrónico válido.', 'error'); return;
     }
-    if (this.registerPassword.length < 6) {
-      this.showMessage('La contraseña debe tener al menos 6 caracteres.', 'error'); return;
+    if (this.registerPassword.length < 8) {
+      this.showMessage('La contraseña debe tener al menos 8 caracteres.', 'error'); return;
     }
-    const result = this.authService.register(this.fullName, this.registerEmail, this.registerPassword, this.registerRole);
-    this.showMessage(result.message, result.ok ? 'success' : 'error');
-    if (result.ok) { this.registerPassword = ''; this.loadSession(); }
+    this.busy = true;
+    try {
+      const result = await this.authService.register(this.fullName, this.registerEmail, this.registerPassword, this.registerRole);
+      this.currentUser = result.user;
+      this.profileName = result.user.fullName;
+      this.registerPassword = '';
+      this.showMessage(result.message, 'success');
+    } catch (error) {
+      this.showMessage(errorMessage(error), 'error');
+    } finally {
+      this.busy = false;
+      this.changeDetector.markForCheck();
+    }
   }
 
-  saveProfile() {
+  async saveProfile(): Promise<void> {
+    if (this.busy || this.loading) return;
     if (!this.profileName.trim()) {
       this.showMessage('El nombre no puede quedar vacío.', 'error'); return;
     }
-    const updated = this.authService.updateProfile(this.profileName);
-    if (updated) {
-      this.currentUser = updated;
+    this.busy = true;
+    this.message = '';
+    try {
+      this.currentUser = await this.authService.updateProfile(this.profileName);
+      this.profileName = this.currentUser.fullName;
       this.showMessage('Perfil actualizado correctamente.', 'success');
-    } else {
-      this.showMessage('No se pudo actualizar el perfil. Vuelve a iniciar sesión.', 'error');
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) this.currentUser = null;
+      this.showMessage(errorMessage(error), 'error');
+    } finally {
+      this.busy = false;
+      this.changeDetector.markForCheck();
     }
   }
 
-  logout() {
-    this.authService.logout();
-    this.currentUser = null;
-    this.profileName = '';
+  async logout(): Promise<void> {
+    if (this.busy || this.loading) return;
+    this.busy = true;
     this.message = '';
-    this.authMode = 'login';
+    try {
+      await this.authService.logout();
+      this.currentUser = null;
+      this.profileName = '';
+      this.authMode = 'login';
+      this.showMessage('Sesión cerrada.', 'success');
+    } catch (error) {
+      this.showMessage(errorMessage(error), 'error');
+    } finally {
+      this.busy = false;
+      this.changeDetector.markForCheck();
+    }
   }
 
   roleLabel(): string {
     return this.currentUser ? this.authService.roleLabel(this.currentUser.role) : '';
-  }
-
-  private loadSession() {
-    this.currentUser = this.authService.getCurrentUser();
-    this.profileName = this.currentUser?.fullName ?? '';
   }
 
   private showMessage(message: string, type: 'success' | 'error') {

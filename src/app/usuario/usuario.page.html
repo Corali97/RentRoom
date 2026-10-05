@@ -19,39 +19,42 @@
       <p>Ingresa a tu cuenta para administrar tus reservas o crea una nueva para comenzar a usar RentRoom.</p>
     </section>
 
+    <p *ngIf="loading" role="status"><ion-spinner name="crescent"></ion-spinner> Comprobando sesión…</p>
+    <p *ngIf="busy" role="status">Procesando…</p>
+    <ng-container *ngIf="!loading">
     <section class="auth-card" *ngIf="!currentUser; else profileView">
-      <ion-segment [(ngModel)]="authMode" mode="md" class="auth-segment">
+      <ion-segment [disabled]="busy" [(ngModel)]="authMode" mode="md" class="auth-segment">
         <ion-segment-button value="login"><ion-label>Iniciar sesión</ion-label></ion-segment-button>
         <ion-segment-button value="register"><ion-label>Crear cuenta</ion-label></ion-segment-button>
       </ion-segment>
 
-      <p *ngIf="message" [class]="messageType === 'success' ? 'ion-text-success' : 'ion-text-danger'">{{ message }}</p>
+      <p role="status" *ngIf="message" [class]="messageType === 'success' ? 'ion-text-success' : 'ion-text-danger'">{{ message }}</p>
 
       <form *ngIf="authMode === 'login'; else registerForm" (ngSubmit)="submitLogin()">
         <div class="form-heading"><h2>Bienvenido de vuelta</h2><p>Ingresa tus datos para continuar.</p></div>
         <label class="field-label" for="login-email">Correo electrónico</label>
-        <ion-item><ion-icon slot="start" name="mail-outline"></ion-icon><ion-input id="login-email" type="email" name="loginEmail" [(ngModel)]="loginEmail" required></ion-input></ion-item>
+        <ion-item><ion-icon slot="start" name="mail-outline"></ion-icon><ion-input [disabled]="busy" id="login-email" type="email" name="loginEmail" [(ngModel)]="loginEmail" required></ion-input></ion-item>
         <label class="field-label" for="login-password">Contraseña</label>
-        <ion-item><ion-icon slot="start" name="lock-closed-outline"></ion-icon><ion-input id="login-password" type="password" name="loginPassword" [(ngModel)]="loginPassword" required></ion-input></ion-item>
-        <ion-button expand="block" type="submit" class="auth-button">Iniciar sesión</ion-button>
+        <ion-item><ion-icon slot="start" name="lock-closed-outline"></ion-icon><ion-input [disabled]="busy" id="login-password" type="password" name="loginPassword" [(ngModel)]="loginPassword" required></ion-input></ion-item>
+        <ion-button [disabled]="busy || loading" expand="block" type="submit" class="auth-button">Iniciar sesión</ion-button>
       </form>
 
       <ng-template #registerForm>
         <form (ngSubmit)="submitRegister()">
           <div class="form-heading"><h2>Comienza a usar RentRoom</h2><p>Crea tu cuenta y selecciona el perfil con el que utilizarás la plataforma.</p></div>
           <label class="field-label" for="full-name">Nombre completo</label>
-          <ion-item><ion-icon slot="start" name="person-outline"></ion-icon><ion-input id="full-name" type="text" name="fullName" [(ngModel)]="fullName" required></ion-input></ion-item>
+          <ion-item><ion-icon slot="start" name="person-outline"></ion-icon><ion-input [disabled]="busy" id="full-name" type="text" name="fullName" [(ngModel)]="fullName" required></ion-input></ion-item>
           <label class="field-label" for="register-email">Correo electrónico</label>
-          <ion-item><ion-icon slot="start" name="mail-outline"></ion-icon><ion-input id="register-email" type="email" name="registerEmail" [(ngModel)]="registerEmail" required></ion-input></ion-item>
+          <ion-item><ion-icon slot="start" name="mail-outline"></ion-icon><ion-input [disabled]="busy" id="register-email" type="email" name="registerEmail" [(ngModel)]="registerEmail" required></ion-input></ion-item>
           <label class="field-label" for="register-password">Contraseña</label>
-          <ion-item><ion-icon slot="start" name="lock-closed-outline"></ion-icon><ion-input id="register-password" type="password" name="registerPassword" [(ngModel)]="registerPassword" required></ion-input></ion-item>
-          <ion-note>La contraseña debe contener al menos 6 caracteres.</ion-note>
+          <ion-item><ion-icon slot="start" name="lock-closed-outline"></ion-icon><ion-input [disabled]="busy" id="register-password" type="password" name="registerPassword" [(ngModel)]="registerPassword" required></ion-input></ion-item>
+          <ion-note>La contraseña debe contener al menos 8 caracteres.</ion-note>
           <label class="field-label">Tipo de usuario</label>
-          <ion-segment [(ngModel)]="registerRole" name="registerRole" mode="md">
+          <ion-segment [disabled]="busy" [(ngModel)]="registerRole" name="registerRole" mode="md">
             <ion-segment-button value="CLIENTE"><ion-label>Cliente</ion-label></ion-segment-button>
             <ion-segment-button value="PROPIETARIO"><ion-label>Propietario</ion-label></ion-segment-button>
           </ion-segment>
-          <ion-button expand="block" type="submit" class="auth-button">Crear cuenta</ion-button>
+          <ion-button [disabled]="busy || loading" expand="block" type="submit" class="auth-button">Crear cuenta</ion-button>
         </form>
       </ng-template>
     </section>
@@ -59,15 +62,16 @@
     <ng-template #profileView>
       <section class="auth-card">
         <div class="form-heading"><h2>Mi perfil</h2><p>Actualiza tus datos personales.</p></div>
-        <p *ngIf="message" [class]="messageType === 'success' ? 'ion-text-success' : 'ion-text-danger'">{{ message }}</p>
+        <p role="status" *ngIf="message" [class]="messageType === 'success' ? 'ion-text-success' : 'ion-text-danger'">{{ message }}</p>
         <ion-chip color="primary"><ion-icon name="shield-checkmark-outline"></ion-icon><ion-label>Perfil: {{ roleLabel() }}</ion-label></ion-chip>
         <label class="field-label" for="profile-name">Nombre completo</label>
-        <ion-item><ion-icon slot="start" name="person-outline"></ion-icon><ion-input id="profile-name" name="profileName" [(ngModel)]="profileName"></ion-input></ion-item>
+        <ion-item><ion-icon slot="start" name="person-outline"></ion-icon><ion-input [disabled]="busy" id="profile-name" name="profileName" [(ngModel)]="profileName"></ion-input></ion-item>
         <label class="field-label">Correo electrónico</label>
-        <ion-item><ion-icon slot="start" name="mail-outline"></ion-icon><ion-input [value]="currentUser?.email" readonly></ion-input></ion-item>
-        <ion-button expand="block" class="auth-button" (click)="saveProfile()">Guardar cambios</ion-button>
-        <ion-button expand="block" fill="outline" (click)="logout()">Cerrar sesión</ion-button>
+        <ion-item><ion-icon slot="start" name="mail-outline"></ion-icon><ion-input [disabled]="busy" [value]="currentUser?.email" readonly></ion-input></ion-item>
+        <ion-button [disabled]="busy || loading" expand="block" class="auth-button" (click)="saveProfile()">Guardar cambios</ion-button>
+        <ion-button [disabled]="busy || loading" expand="block" fill="outline" (click)="logout()">Cerrar sesión</ion-button>
       </section>
     </ng-template>
+    </ng-container>
   </main>
 </ion-content>

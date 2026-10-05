@@ -1,115 +1,105 @@
+import { vi } from 'vitest';
 import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { CatalogoPage } from './catalogo.page';
 import { CatalogoPageModule } from './catalogo.module';
-import { AuthService } from '../services/auth.service';
-import { ProductService, RentRoomProduct } from '../services/product.service';
+import { RentRoomProduct } from '../services/product.service';
 
-describe('CatalogoPage', () => {
+const owner = { id: 7, fullName: 'Ana', email: 'ana@example.com', role: 'PROPIETARIO' };
+const product: RentRoomProduct = { id: 41, ownerEmail: owner.email, name: 'Vestido azul', description: 'Para fiesta', category: 'Vestidos', purchaseValue: 50000, rentalValue: 5000, guarantee: 10000, imageUrl: '', status: 'DISPONIBLE' };
+const reply = (data: unknown, status = 200) => Promise.resolve(new Response(JSON.stringify(data), { status }));
+
+describe('CatalogoPage: persistencia y errores de API', () => {
   let component: CatalogoPage;
   let fixture: ComponentFixture<CatalogoPage>;
+  const fetchMock = vi.fn<typeof fetch>();
 
   beforeEach(async () => {
-    localStorage.clear();
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     await TestBed.configureTestingModule({ imports: [CatalogoPageModule], providers: [provideRouter([])] }).compileComponents();
     fixture = TestBed.createComponent(CatalogoPage);
     component = fixture.componentInstance;
-    fixture.debugElement.injector.get(ChangeDetectorRef).detectChanges(); await fixture.whenStable();
   });
+  afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
-  afterEach(() => localStorage.clear());
-
-  function loginOwner() {
-    TestBed.inject(AuthService).register('Ana', 'ana@example.com', 'clave123', 'PROPIETARIO');
-    component.ionViewWillEnter();
+  async function openCatalogue(products: RentRoomProduct[] = [], signedIn = true): Promise<void> {
+    fetchMock.mockImplementationOnce(() => signedIn ? reply({ user: owner }) : reply({ message: 'Sin sesión' }, 401));
+    fetchMock.mockImplementationOnce(() => reply({ products }));
+    await component.ionViewWillEnter();
+    await render();
+  }
+  async function render(): Promise<void> {
+    fixture.debugElement.injector.get(ChangeDetectorRef).detectChanges();
+    await fixture.whenStable();
+  }
+  function fillForm(): void {
+    component.form = { name: product.name, description: product.description, category: product.category, purchaseValue: product.purchaseValue, rentalValue: product.rentalValue, guarantee: product.guarantee, imageUrl: '' };
   }
 
-  function fillForm() {
-    component.form = { name: 'Vestido azul', description: 'Para fiesta', category: 'Vestidos', purchaseValue: 50000, rentalValue: 5000, guarantee: 10000, imageUrl: '' };
-  }
-
-  async function clickButton(label: string) {
-    fixture.debugElement.injector.get(ChangeDetectorRef).detectChanges(); await fixture.whenStable();
-    const button = Array.from(fixture.nativeElement.querySelectorAll('ion-button') as NodeListOf<HTMLElement>).find(el => el.textContent?.trim() === label);
-    expect(button).toBeTruthy();
-    button!.click();
-    fixture.debugElement.injector.get(ChangeDetectorRef).detectChanges(); await fixture.whenStable();
-  }
-
-  it('HU-04/05/06: publica, visualiza, edita y elimina desde los botones', async () => {
-    loginOwner();
-    fillForm();
-    await clickButton('Publicar producto');
-    expect(component.products).toHaveLength(1);
+  it('publica, edita y elimina únicamente después de la confirmación del servidor', async () => {
+    await openCatalogue(); fillForm();
+    fetchMock.mockImplementationOnce(() => reply({ product }, 201));
+    await component.saveProduct(); await render();
     expect(fixture.nativeElement.textContent).toContain('Vestido azul');
-    expect(new ProductService().getAll()[0].ownerEmail).toBe('ana@example.com');
-    await clickButton('Editar');
+    component.editProduct(product);
     component.form.name = 'Vestido actualizado';
-    await clickButton('Guardar cambios');
-    expect(new ProductService().getAll()[0].name).toBe('Vestido actualizado');
+    fetchMock.mockImplementationOnce(() => reply({ product: { ...product, name: 'Vestido actualizado' } }));
+    await component.saveProduct(); await render();
     expect(fixture.nativeElement.textContent).toContain('Vestido actualizado');
-    await clickButton('Eliminar');
-    expect(new ProductService().getAll()).toEqual([]);
+    fetchMock.mockImplementationOnce(() => reply({ message: 'Eliminado' }));
+    await component.deleteProduct(component.products[0]); await render();
     expect(fixture.nativeElement.textContent).toContain('Aún no hay productos publicados.');
   });
 
-  it('HU-04: rechaza visitantes y clientes', async () => {
-    fillForm();
-    component.saveProduct();
-    expect(new ProductService().getAll()).toEqual([]);
-    TestBed.inject(AuthService).register('Cliente', 'cliente@example.com', 'clave123', 'CLIENTE');
-    component.ionViewWillEnter();
-    component.saveProduct();
-    expect(new ProductService().getAll()).toEqual([]);
-    fixture.debugElement.injector.get(ChangeDetectorRef).detectChanges(); await fixture.whenStable();
+  it('conserva los datos del formulario cuando falla la publicación', async () => {
+    await openCatalogue(); fillForm();
+    fetchMock.mockRejectedValueOnce(new TypeError('Network error'));
+    await component.saveProduct(); await render();
+    expect(component.form.name).toBe(product.name);
+    expect(component.products).toEqual([]);
+    expect(component.messageType).toBe('error');
+    expect(fixture.nativeElement.textContent).not.toContain('Producto publicado correctamente.');
+    expect(component.busy).toBe(false);
+  });
+
+  it('mantiene el producto visible si el servidor rechaza la eliminación', async () => {
+    await openCatalogue([product]);
+    fetchMock.mockImplementationOnce(() => reply({ message: 'No se puede eliminar un producto reservado.' }, 409));
+    await component.deleteProduct(product);
+    expect(component.products).toEqual([product]);
+    expect(component.message).toContain('No se puede eliminar');
+  });
+
+  it('muestra un error recuperable sin presentar una falla como catálogo vacío', async () => {
+    fetchMock.mockImplementationOnce(() => reply({ message: 'Sin sesión' }, 401));
+    fetchMock.mockImplementationOnce(() => reply({ message: 'La base de datos no está disponible.' }, 503));
+    await component.ionViewWillEnter(); await render();
+    expect(fixture.nativeElement.textContent).toContain('La base de datos no está disponible.');
+    expect(fixture.nativeElement.textContent).toContain('Reintentar');
+    expect(fixture.nativeElement.textContent).not.toContain('Aún no hay productos publicados.');
+  });
+
+  it('vuelve a consultar la sesión al entrar y oculta edición/publicación cuando expiró', async () => {
+    await openCatalogue([product]);
+    expect(component.isOwner).toBe(true);
+    await openCatalogue([product], false);
+    expect(component.isOwner).toBe(false);
     expect(fixture.nativeElement.querySelector('ion-input')).toBeNull();
+    const priorCalls = fetchMock.mock.calls.length;
+    fillForm(); await component.saveProduct();
+    expect(fetchMock.mock.calls.length).toBe(priorCalls);
   });
 
-  it('HU-04: exige nombre, categoría y arriendo positivo', async () => {
-    loginOwner();
-    for (const invalid of [{ name: ' ' }, { category: ' ' }, { rentalValue: 0 }, { rentalValue: -1 }]) {
-      fillForm();
-      Object.assign(component.form, invalid);
-      component.saveProduct();
-      expect(new ProductService().getAll()).toEqual([]);
-    }
-  });
-
-  it('HU-05: impide editar o eliminar productos ajenos', async () => {
-    loginOwner();
-    fillForm();
-    const other: RentRoomProduct = { ...component.form, id: 12, ownerEmail: 'otra@example.com', status: 'DISPONIBLE' };
-    TestBed.inject(ProductService).save([other]);
-    component.ionViewWillEnter();
-    component.editProduct(other);
+  it('rechaza importes inválidos antes de enviar y evita controles de edición ajenos', async () => {
+    await openCatalogue([product]); fillForm();
+    component.form.rentalValue = -1;
+    const priorCalls = fetchMock.mock.calls.length;
+    await component.saveProduct();
+    expect(fetchMock.mock.calls.length).toBe(priorCalls);
+    component.editProduct({ ...product, ownerEmail: 'otra@example.com' });
     expect(component.editingId).toBeNull();
-    component.deleteProduct(other);
-    expect(new ProductService().getAll()).toEqual([other]);
-    fixture.debugElement.injector.get(ChangeDetectorRef).detectChanges(); await fixture.whenStable();
-    expect(Array.from(fixture.nativeElement.querySelectorAll('ion-button') as NodeListOf<HTMLElement>).some(el => ['Editar', 'Eliminar'].includes(el.textContent?.trim() ?? ''))).toBe(false);
-  });
-
-  it('HU-05: cancelar conserva el producto original', async () => {
-    loginOwner(); fillForm(); component.saveProduct();
-    component.editProduct(component.products[0]);
-    component.form.name = 'Cambio cancelado';
-    await clickButton('Cancelar');
-    expect(component.editingId).toBeNull();
-    expect(new ProductService().getAll()[0].name).toBe('Vestido azul');
-  });
-
-  it('HU-06: visitante visualiza disponibles y no inactivos al entrar', async () => {
-    fillForm();
-    const available: RentRoomProduct = { ...component.form, id: 1, ownerEmail: 'ana@example.com', status: 'DISPONIBLE' };
-    TestBed.inject(ProductService).save([available, { ...available, id: 2, name: 'Oculto', status: 'INACTIVO' }]);
-    component.ionViewWillEnter(); fixture.debugElement.injector.get(ChangeDetectorRef).detectChanges(); await fixture.whenStable();
-    expect(component.products).toEqual([available]);
-    expect(fixture.nativeElement.textContent).toContain('Vestido azul');
-    expect(fixture.nativeElement.textContent).not.toContain('Oculto');
-  });
-
-  it('should create', async () => {
-    expect(component).toBeTruthy();
   });
 });

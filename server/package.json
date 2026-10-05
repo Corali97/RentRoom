@@ -1,0 +1,18 @@
+{
+  "name": "rentroom-oracle-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node --env-file=.env server.mjs",
+    "dev": "node --watch --env-file=.env server.mjs",
+    "test": "node --test test/*.test.mjs",
+    "test:oracle": "node --env-file=.env test/oracle.integration.mjs"
+  },
+  "dependencies": {
+    "oracledb": "7.0.1"
+  }
+}

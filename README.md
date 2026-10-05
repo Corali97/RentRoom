@@ -1,3 +1,11 @@
+# RentRoom — Integración Oracle para Semana 8
+
+Integración local verificada de usuarios y productos con Oracle mediante una API. Compilación correcta, 25 pruebas de frontend y 6 de API aprobadas, más 25 comprobaciones completas contra Oracle. Migración aplicada en XEPDB1 / RENTROOM_S5_EVIDENCE el 5 de octubre de 2026; verificada también su repetición sin duplicar objetos.
+
+Consulta [INTEGRACION_ORACLE.md](INTEGRACION_ORACLE.md) para configurar y ejecutar. Los datos y credenciales no se incluyen en este paquete.
+
+## Antecedente de Semana 7 (estado anterior a esta actualización)
+
 # RentRoom — Semana 7 · Sprint II
 
 Proyecto APT, Grupo 10. Estado documentado al 28/09/2026.
