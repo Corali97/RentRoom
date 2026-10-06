@@ -68,3 +68,9 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Configuracion privada de Oracle y dependencias de la API
+server/.env
+server/node_modules/
+
+server/integration-result.json
