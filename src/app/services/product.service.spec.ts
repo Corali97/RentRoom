@@ -1,45 +1,46 @@
+import { vi } from 'vitest';
 import { ProductService, RentRoomProduct } from './product.service';
 
-describe('ProductService: conservar productos en todos los estados', () => {
+const product: RentRoomProduct = { id: 41, ownerEmail: 'ana@example.com', name: 'Vestido', description: 'Azul', category: 'Ropa', purchaseValue: 50000, rentalValue: 5000, guarantee: 10000, imageUrl: '', status: 'DISPONIBLE' };
+const reply = (data: unknown, status = 200) => Promise.resolve(new Response(JSON.stringify(data), { status }));
+
+describe('ProductService: catálogo respaldado por el servidor', () => {
   let service: ProductService;
-  const available: RentRoomProduct = { id: 1, ownerEmail: 'ana@example.com', name: 'Vestido', description: 'Azul', category: 'Ropa', purchaseValue: 50000, rentalValue: 5000, guarantee: 10000, imageUrl: '', status: 'DISPONIBLE' };
-  const inactive: RentRoomProduct = { ...available, id: 2, status: 'INACTIVO' };
-  const stored = (): RentRoomProduct[] => JSON.parse(localStorage.getItem('rentroom_products') ?? '[]');
+  const fetchMock = vi.fn<typeof fetch>();
+  beforeEach(() => { localStorage.clear(); fetchMock.mockReset(); vi.stubGlobal('fetch', fetchMock); service = new ProductService(); });
+  afterEach(() => { vi.unstubAllGlobals(); localStorage.clear(); });
 
-  beforeEach(() => { localStorage.clear(); service = new ProductService(); service.save([available, inactive]); });
-  afterEach(() => localStorage.clear());
+  it('lee productos del servidor e ignora el almacenamiento antiguo del navegador', async () => {
+    localStorage.setItem('rentroom_products', JSON.stringify([{ ...product, name: 'Solo local' }]));
+    fetchMock.mockImplementationOnce(() => reply({ products: [product, { ...product, id: 42, status: 'INACTIVO' }] }));
+    expect(await service.getAll()).toEqual([product]);
+  });
 
-  it('muestra solo disponibles sin modificar el almacenamiento', () => {
-    expect(service.getAll()).toEqual([available]);
-    expect(stored()).toEqual([available, inactive]);
+  it('publica con el identificador asignado por el servidor y no envía un propietario editable', async () => {
+    fetchMock.mockImplementationOnce(() => reply({ product }, 201));
+    expect(await service.create(product)).toEqual(product);
+    const options = fetchMock.mock.calls[0][1]!;
+    const body = JSON.parse(options.body as string);
+    expect(options.credentials).toBe('include');
+    expect(body.ownerEmail).toBeUndefined();
+    expect(body.id).toBeUndefined();
+    expect(localStorage.length).toBe(0);
   });
-  it('publica sin perder productos inactivos', () => {
-    service.create({ ...available, name: 'Nuevo' });
-    expect(stored()).toHaveLength(3);
-    expect(stored()).toContainEqual(inactive);
-    expect(service.getAll().map(p => p.name)).toContain('Nuevo');
+
+  it('propaga el rechazo de edición ajena sin escribir datos locales', async () => {
+    fetchMock.mockImplementationOnce(() => reply({ message: 'No puedes editar este producto.' }, 403));
+    await expect(service.update({ ...product, name: 'Otro nombre' })).rejects.toThrow('No puedes editar este producto.');
+    expect(localStorage.length).toBe(0);
   });
-  it('edita sin perder productos inactivos', () => {
-    service.update({ ...available, name: 'Editado' });
-    expect(stored()).toEqual([{ ...available, name: 'Editado' }, inactive]);
+
+  it('pide la baja del producto al servidor sin enviar un correo como autorización', async () => {
+    fetchMock.mockImplementationOnce(() => reply({ message: 'Eliminado.' }));
+    await service.remove(product.id);
+    expect(fetchMock).toHaveBeenCalledWith('/api/products/41', expect.objectContaining({ method: 'DELETE', credentials: 'include', body: undefined }));
   });
-  it('puede actualizar un producto inactivo', () => {
-    service.update({ ...inactive, name: 'Inactivo editado' });
-    expect(stored()).toEqual([available, { ...inactive, name: 'Inactivo editado' }]);
-  });
-  it('elimina solo el producto del propietario indicado', () => {
-    service.remove(available.id, 'otra@example.com');
-    expect(stored()).toEqual([available, inactive]);
-    service.remove(available.id, available.ownerEmail);
-    expect(stored()).toEqual([inactive]);
-  });
-  it('elimina un inactivo sin alterar otros productos', () => {
-    service.remove(inactive.id, inactive.ownerEmail);
-    expect(stored()).toEqual([available]);
-  });
-  it('conserva todo si el identificador no existe', () => {
-    service.update({ ...available, id: 999 });
-    service.remove(999, available.ownerEmail);
-    expect(stored()).toEqual([available, inactive]);
+
+  it('no convierte una caída de Oracle/API en un catálogo vacío', async () => {
+    fetchMock.mockImplementationOnce(() => reply({ message: 'La base de datos no está disponible.' }, 503));
+    await expect(service.getAll()).rejects.toThrow('La base de datos no está disponible.');
   });
 });

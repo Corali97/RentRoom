@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { requestApi } from './api';
 
 export interface RentRoomProduct {
   id: number;
@@ -6,23 +7,40 @@ export interface RentRoomProduct {
   name: string;
   description: string;
   category: string;
-  purchaseValue: number;
+  purchaseValue: number | null;
   rentalValue: number;
   guarantee: number;
   imageUrl: string;
   status: 'DISPONIBLE' | 'INACTIVO';
 }
 
+export type ProductForm = Omit<RentRoomProduct, 'id' | 'ownerEmail' | 'status'>;
+
 @Injectable({ providedIn: 'root' })
 export class ProductService {
-  private readonly key = 'rentroom_products';
-  private getStoredProducts(): RentRoomProduct[] {
-    const raw = localStorage.getItem(this.key);
-    return raw ? JSON.parse(raw) : [];
+  async getAll(): Promise<RentRoomProduct[]> {
+    const result = await requestApi<{ products: RentRoomProduct[] }>('/products');
+    return result.products.filter(product => product.status === 'DISPONIBLE');
   }
-  getAll(): RentRoomProduct[] { return this.getStoredProducts().filter(p => p.status === 'DISPONIBLE'); }
-  save(items: RentRoomProduct[]): void { localStorage.setItem(this.key, JSON.stringify(items)); }
-  create(data: any): void { const items = this.getStoredProducts(); items.push({ ...data, id: Date.now(), status: 'DISPONIBLE' }); this.save(items); }
-  update(product: RentRoomProduct): void { const items = this.getStoredProducts(); const i = items.findIndex(p => p.id === product.id); if (i >= 0) { items[i] = product; this.save(items); } }
-  remove(id: number, ownerEmail: string): void { this.save(this.getStoredProducts().filter(p => !(p.id === id && p.ownerEmail === ownerEmail))); }
+
+  async create(data: ProductForm): Promise<RentRoomProduct> {
+    const result = await requestApi<{ product: RentRoomProduct }>('/products', 'POST', this.fields(data));
+    return result.product;
+  }
+
+  async update(product: RentRoomProduct): Promise<RentRoomProduct> {
+    const result = await requestApi<{ product: RentRoomProduct }>(`/products/${product.id}`, 'PUT', {
+      ...this.fields(product), status: product.status,
+    });
+    return result.product;
+  }
+
+  async remove(id: number): Promise<void> {
+    await requestApi<{ message: string }>(`/products/${id}`, 'DELETE');
+  }
+
+  private fields(data: ProductForm): ProductForm {
+    const { name, description, category, purchaseValue, rentalValue, guarantee, imageUrl } = data;
+    return { name, description, category, purchaseValue, rentalValue, guarantee, imageUrl };
+  }
 }

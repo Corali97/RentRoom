@@ -1,30 +1,111 @@
-<ion-header>
-  <ion-toolbar color="primary"><ion-title>RentRoom - Catálogo</ion-title></ion-toolbar>
-  <ion-toolbar>
-    <ion-segment value="catalogo" mode="md">
-      <ion-segment-button value="home" routerLink="/home"><ion-icon name="home-outline"></ion-icon><ion-label>Inicio</ion-label></ion-segment-button>
-      <ion-segment-button value="catalogo" routerLink="/catalogo"><ion-icon name="grid-outline"></ion-icon><ion-label>Catálogo</ion-label></ion-segment-button>
-      <ion-segment-button value="usuario" routerLink="/usuario"><ion-icon name="person-outline"></ion-icon><ion-label>Usuario</ion-label></ion-segment-button>
-    </ion-segment>
-  </ion-toolbar>
-</ion-header>
-<ion-content><div class="ion-padding">
-<h1>Catálogo de productos</h1><p>Explora productos disponibles para arriendo.</p>
-<ion-card *ngIf="isOwner"><ion-card-header><ion-card-title>{{ editingId ? 'Editar producto' : 'Publicar producto' }}</ion-card-title></ion-card-header><ion-card-content>
-<ion-item><ion-input label="Nombre" labelPlacement="stacked" [(ngModel)]="form.name"></ion-input></ion-item>
-<ion-item><ion-textarea label="Descripción" labelPlacement="stacked" [(ngModel)]="form.description"></ion-textarea></ion-item>
-<ion-item><ion-input label="Categoría" labelPlacement="stacked" [(ngModel)]="form.category"></ion-input></ion-item>
-<ion-item><ion-input label="Valor de compra" labelPlacement="stacked" type="number" [(ngModel)]="form.purchaseValue"></ion-input></ion-item>
-<ion-item><ion-input label="Valor de arriendo" labelPlacement="stacked" type="number" [(ngModel)]="form.rentalValue"></ion-input></ion-item>
-<ion-item><ion-input label="Garantía" labelPlacement="stacked" type="number" [(ngModel)]="form.guarantee"></ion-input></ion-item>
-<ion-item><ion-input label="URL de imagen" labelPlacement="stacked" [(ngModel)]="form.imageUrl"></ion-input></ion-item>
-<ion-button expand="block" (click)="saveProduct()">{{ editingId ? 'Guardar cambios' : 'Publicar producto' }}</ion-button>
-<ion-button *ngIf="editingId" expand="block" fill="outline" (click)="cancelEdit()">Cancelar</ion-button>
-</ion-card-content></ion-card>
-<ion-note *ngIf="!isOwner">Para publicar debes iniciar sesión con perfil Propietario.</ion-note><p *ngIf="message"><strong>{{ message }}</strong></p>
-<ion-grid *ngIf="products.length"><ion-row><ion-col size="12" size-md="6" *ngFor="let product of products"><ion-card>
-<img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.name"><ion-card-header><ion-card-subtitle>{{ product.category }}</ion-card-subtitle><ion-card-title>{{ product.name }}</ion-card-title></ion-card-header>
-<ion-card-content><p>{{ product.description }}</p><p><strong>Arriendo:</strong> ${{ product.rentalValue }}</p><p><strong>Garantía:</strong> ${{ product.guarantee }}</p><ion-chip color="success">Disponible</ion-chip>
-<div *ngIf="isMine(product)"><ion-button size="small" fill="outline" (click)="editProduct(product)">Editar</ion-button><ion-button size="small" color="danger" fill="outline" (click)="deleteProduct(product)">Eliminar</ion-button></div>
-</ion-card-content></ion-card></ion-col></ion-row></ion-grid><ion-card *ngIf="!products.length"><ion-card-content>Aún no hay productos publicados.</ion-card-content></ion-card>
-</div></ion-content>
+<div class="ion-page catalog-shell">
+  <header class="catalog-header">
+    <a class="catalog-brand" routerLink="/home">RentRoom</a>
+    <nav aria-label="Navegación principal">
+      <a routerLink="/home">Inicio</a>
+      <a routerLink="/catalogo" aria-current="page">Catálogo</a>
+      <a routerLink="/usuario">Usuario</a>
+    </nav>
+  </header>
+  <main class="catalog-page">
+  <h1>Catálogo de prendas</h1>
+  <p>Elige una prenda y las fechas en que quieres arrendarla.</p>
+  <p class="demo-note">Las reservas confirmadas se guardan en la base de datos. Para reservar, inicia sesión con una cuenta Cliente.</p>
+
+  <p *ngIf="loading" role="status">Cargando catálogo…</p>
+  <p *ngIf="busy" role="status">Guardando cambios…</p>
+  <p *ngIf="bookingMessage" role="status" [class]="bookingMessageType === 'error' ? 'ion-text-danger' : 'ion-text-success'">
+    <strong>{{ bookingMessage }}</strong>
+  </p>
+  <p *ngIf="bookingRequiresLogin"><a routerLink="/usuario">Iniciar sesión o crear cuenta Cliente</a></p>
+
+  <section class="garment-grid" aria-label="Prendas disponibles">
+    <article class="garment-card" *ngFor="let garment of featuredGarments">
+      <div class="garment-illustration" aria-hidden="true">
+        <span>{{ garment.id === 'POLERA_BASICA' ? '👕' : '🧥' }}</span>
+      </div>
+      <div class="garment-content">
+        <p class="garment-category">{{ garment.category }}</p>
+        <h2>{{ garment.name }}</h2>
+        <p>{{ garment.description }}</p>
+        <div class="garment-details">
+          <span class="garment-chip">Talla: {{ garment.size }}</span>
+          <span class="garment-chip">Género: {{ garment.gender }}</span>
+        </div>
+        <p><strong>Arriendo:</strong> {{ formatPrice(rentalPricePerDay) }} por día</p>
+        <p><strong>Garantía:</strong> {{ formatPrice(guaranteeAmount) }}</p>
+        <span class="availability-chip">Disponible según fechas</span>
+
+        <div *ngIf="reservationsFor(garment).length" class="reserved-dates">
+          <p><strong>Tus reservas:</strong></p>
+          <p *ngFor="let reservation of reservationsFor(garment)">
+            {{ reservation.startDate }} al {{ reservation.endDate }}
+          </p>
+        </div>
+
+        <button class="booking-button" *ngIf="bookingGarmentId !== garment.id" type="button" (click)="openBooking(garment)">
+          Reservar por fechas
+        </button>
+
+        <div *ngIf="bookingGarmentId === garment.id" class="booking-form">
+          <label class="date-label">Desde
+            <input type="date" [min]="minDate" [(ngModel)]="bookingStartDate">
+          </label>
+          <label class="date-label">Hasta
+            <input type="date" [min]="bookingStartDate || minDate" [(ngModel)]="bookingEndDate">
+          </label>
+          <div *ngIf="rentalDays(bookingStartDate, bookingEndDate) > 0" class="booking-total">
+            <p>{{ rentalDays(bookingStartDate, bookingEndDate) }} día(s) × {{ formatPrice(rentalPricePerDay) }}:
+              <strong>{{ formatPrice(rentalTotal(bookingStartDate, bookingEndDate)) }}</strong>
+            </p>
+            <p>Garantía: <strong>{{ formatPrice(guaranteeAmount) }}</strong></p>
+            <p>Total incluido garantía:
+              <strong>{{ formatPrice(rentalTotal(bookingStartDate, bookingEndDate) + guaranteeAmount) }}</strong>
+            </p>
+          </div>
+          <button class="booking-button" type="button" (click)="reserveGarment(garment)">Confirmar reserva</button>
+          <button class="cancel-button" type="button" (click)="closeBooking()">Cancelar</button>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section *ngIf="isOwner && !loading" class="owner-form">
+    <h2>{{ editingId ? 'Editar producto' : 'Publicar producto' }}</h2>
+    <label>Nombre<input [disabled]="busy" [(ngModel)]="form.name"></label>
+    <label>Descripción<textarea [disabled]="busy" [(ngModel)]="form.description"></textarea></label>
+    <label>Categoría<input [disabled]="busy" [(ngModel)]="form.category"></label>
+    <label>Valor de compra<input [disabled]="busy" type="number" [(ngModel)]="form.purchaseValue"></label>
+    <label>Valor de arriendo<input [disabled]="busy" type="number" [(ngModel)]="form.rentalValue"></label>
+    <label>Garantía<input [disabled]="busy" type="number" [(ngModel)]="form.guarantee"></label>
+    <label>URL de imagen<input [disabled]="busy" [(ngModel)]="form.imageUrl"></label>
+    <button class="booking-button" [disabled]="busy || loading" type="button" (click)="saveProduct()">
+      {{ editingId ? 'Guardar cambios' : 'Publicar producto' }}
+    </button>
+    <button class="cancel-button" [disabled]="busy || loading" *ngIf="editingId" type="button" (click)="cancelEdit()">Cancelar</button>
+  </section>
+
+  <p *ngIf="!loading && !isOwner">Para publicar productos propios debes iniciar sesión con perfil Propietario.</p>
+  <p role="status" *ngIf="message" [class]="messageType === 'error' ? 'ion-text-danger' : 'ion-text-success'"><strong>{{ message }}</strong></p>
+  <p *ngIf="loadError" role="alert">{{ loadError }} <button type="button" (click)="refresh()" [disabled]="loading">Reintentar</button></p>
+
+  <section *ngIf="!loading && products.length" class="garment-grid" aria-label="Productos publicados">
+    <article *ngFor="let product of products" class="garment-card">
+      <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.name">
+      <div class="garment-content">
+        <p class="garment-category">{{ product.category }}</p>
+        <h2>{{ product.name }}</h2>
+        <p>{{ product.description }}</p>
+        <p><strong>Arriendo:</strong> ${{ product.rentalValue }}</p>
+        <p><strong>Garantía:</strong> ${{ product.guarantee }}</p>
+        <span class="availability-chip">Disponible</span>
+        <div *ngIf="isMine(product)">
+          <button class="cancel-button" [disabled]="busy || loading" type="button" (click)="editProduct(product)">Editar</button>
+          <button class="cancel-button" [disabled]="busy || loading" type="button" (click)="deleteProduct(product)">Eliminar</button>
+        </div>
+      </div>
+    </article>
+  </section>
+  <p *ngIf="!loading && !loadError && !products.length">Aún no hay productos publicados por propietarios.</p>
+  </main>
+</div>

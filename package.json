@@ -4,6 +4,9 @@
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
   "scripts": {
+    "start:local": "node start-local.mjs",
+    "api": "npm --prefix server start",
+    "test:api": "npm --prefix server test",
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
