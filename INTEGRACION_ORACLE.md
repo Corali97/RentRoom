@@ -29,6 +29,20 @@ La cuenta de API no debe ser SYS ni SYSTEM ni tener permisos de creacion de tabl
 Copiar `server/.env.example` a `server/.env` y completar las credenciales localmente.
 Ese archivo no debe subirse a GitHub ni incluirse en la entrega publica.
 
+## Modo demostración sin Oracle (SQLite)
+
+Si no tienes Oracle, puedes usar la API local de demostración, que guarda cuentas y
+reservas en un archivo SQLite (`server/data/rentroom-demo.sqlite`, ignorado por Git):
+
+```sh
+npm --prefix server run demo
+npm start
+```
+
+Usa las mismas rutas y cifrado de contraseñas que la API de Oracle. No reemplaza la
+base Oracle de la entrega: es solo para probar el flujo en este equipo. Si la API
+de Oracle ya usa el puerto 3001, detenla antes de iniciar la demo.
+
 ## Ejecutar
 
 Desde la carpeta principal:
@@ -53,8 +67,10 @@ y HTTPS; activar COOKIE_SECURE=true y configurar los origenes permitidos.
 
 La pagina Catalogo muestra una polera y un chaleco de ejemplo con talla, genero,
 arriendo de $10.000 por dia y garantia de $20.000. Permite seleccionar fechas,
-calcular el total y guardar la reserva en Oracle. Se requiere iniciar sesion con
-una cuenta Cliente. La API bloquea la prenda durante la comprobacion e insercion
+calcular el total y continuar la reserva. Al pulsar "Confirmar reserva" se pide iniciar
+sesion o crear una cuenta Cliente y luego se abre la pagina /pago, que simula el pago
+(sin cobro real ni almacenamiento de datos de tarjeta). La reserva se guarda en Oracle
+solo cuando el pago simulado se completa. La API bloquea la prenda durante la comprobacion e insercion
 para impedir reservas superpuestas, incluso desde dos sesiones al mismo tiempo.
 
 El catalogo de muestra se almacena en PRENDA_MUESTRA y sus reservas en
@@ -78,3 +94,8 @@ detalle del producto ni calendario de disponibilidad. El estado de las HU debe
 revisarse con sus criterios completos antes de marcarlas terminadas.
 
 Referencia del controlador: https://node-oracledb.readthedocs.io/en/latest/user_guide/connection_handling.html
+
+## Reportes
+
+La ruta `/reportes` (enlace «Reportes» en el menú) muestra a una cuenta Cliente el reporte de sus reservas guardadas: totales (reservas, días, arriendo, garantías), resumen por prenda y detalle, con filtro por rango de fechas, descarga en CSV e impresión o PDF desde el navegador. Usa `GET /api/sample-reservations`, por lo que funciona con Oracle y con la API demo SQLite.
+

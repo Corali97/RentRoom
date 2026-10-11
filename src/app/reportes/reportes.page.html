@@ -1,0 +1,61 @@
+<div class="ion-page report-shell">
+  <header class="report-header">
+    <a class="report-brand" routerLink="/home">RentRoom</a>
+    <nav aria-label="Navegación principal">
+      <a routerLink="/home">Inicio</a>
+      <a routerLink="/catalogo">Catálogo</a>
+      <a routerLink="/reportes">Reportes</a>
+      <a routerLink="/usuario">Usuario</a>
+    </nav>
+  </header>
+  <main class="report-page">
+    <h1>Reporte de reservas</h1>
+    <p *ngIf="loading" role="status">Cargando…</p>
+    <p *ngIf="message" role="status" class="ion-text-danger"><strong>{{ message }}</strong></p>
+
+    <ng-container *ngIf="!loading && user?.role === 'CLIENTE'">
+      <p class="report-meta">Cliente: <strong>{{ user.fullName }}</strong> · Generado: {{ generatedAt }}</p>
+
+      <section class="report-filters no-print" aria-label="Filtros del reporte">
+        <label>Desde <input type="date" [(ngModel)]="fromDate" name="fromDate"></label>
+        <label>Hasta <input type="date" [(ngModel)]="toDate" name="toDate"></label>
+        <button type="button" class="report-button secondary" (click)="clearFilters()">Limpiar filtros</button>
+        <button type="button" class="report-button" (click)="downloadCsv()" [disabled]="!filtered.length">Descargar CSV</button>
+        <button type="button" class="report-button" (click)="print()" [disabled]="!filtered.length">Imprimir / PDF</button>
+      </section>
+
+      <p *ngIf="!filtered.length">No hay reservas para mostrar en este período.</p>
+
+      <ng-container *ngIf="filtered.length">
+        <section class="report-totals" aria-label="Resumen">
+          <div><span>Reservas</span><strong>{{ filtered.length }}</strong></div>
+          <div><span>Días arrendados</span><strong>{{ totalDays }}</strong></div>
+          <div><span>Arriendo</span><strong>{{ formatPrice(totalRental) }}</strong></div>
+          <div><span>Garantías</span><strong>{{ formatPrice(totalGuarantee) }}</strong></div>
+          <div><span>Total</span><strong>{{ formatPrice(grandTotal) }}</strong></div>
+        </section>
+
+        <h2>Resumen por prenda</h2>
+        <table>
+          <thead><tr><th>Prenda</th><th>Reservas</th><th>Días</th><th>Total</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let group of summary">
+              <td>{{ group.name }}</td><td>{{ group.reservations }}</td><td>{{ group.days }}</td><td>{{ formatPrice(group.total) }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>Detalle</h2>
+        <table>
+          <thead><tr><th>N°</th><th>Prenda</th><th>Inicio</th><th>Término</th><th>Días</th><th>Arriendo</th><th>Garantía</th><th>Total</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let item of filtered">
+              <td>{{ item.id }}</td><td>{{ garmentName(item) }}</td><td>{{ item.startDate }}</td><td>{{ item.endDate }}</td>
+              <td>{{ item.rentalDays }}</td><td>{{ formatPrice(item.rentalTotal) }}</td><td>{{ formatPrice(item.guarantee) }}</td><td>{{ formatPrice(item.total) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </ng-container>
+    </ng-container>
+  </main>
+</div>

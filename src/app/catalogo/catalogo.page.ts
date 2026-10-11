@@ -1,5 +1,7 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService, RentRoomUser } from '../services/auth.service';
+import { BookingDraftService } from '../services/booking-draft.service';
 import { ProductForm, ProductService, RentRoomProduct } from '../services/product.service';
 import { ReservationService, SampleGarmentCode, SampleReservation } from '../services/reservation.service';
 import { ApiError, errorMessage } from '../services/api';
@@ -21,6 +23,11 @@ export class CatalogoPage {
   ];
   readonly rentalPricePerDay = 10000;
   readonly guaranteeAmount = 20000;
+  searchText = '';
+  genderFilter = '';
+  sizeFilter = '';
+  readonly genderOptions = ['Hombre', 'Mujer', 'Unisex'];
+  readonly sizeOptions = ['S', 'M', 'L', 'XL'];
   readonly minDate = this.today();
   products: RentRoomProduct[] = [];
   reservations: SampleReservation[] = [];
@@ -43,11 +50,41 @@ export class CatalogoPage {
     private productService: ProductService,
     private reservationService: ReservationService,
     private authService: AuthService,
+    private drafts: BookingDraftService,
+    private router: Router,
     private changeDetector: ChangeDetectorRef,
   ) {}
 
   async ionViewWillEnter(): Promise<void> {
     await this.refresh();
+  }
+
+  get hasActiveFilters(): boolean { return !!(this.searchText.trim() || this.genderFilter || this.sizeFilter); }
+
+  get filteredGarments(): FeaturedGarment[] {
+    return this.featuredGarments.filter(garment =>
+      this.matchesText([garment.name, garment.description, garment.category, garment.size, garment.gender]) &&
+      (!this.genderFilter || garment.gender === this.genderFilter) &&
+      (!this.sizeFilter || garment.size === this.sizeFilter));
+  }
+
+  // Owner products have no size or gender, so they are hidden while those filters are active.
+  get filteredProducts(): RentRoomProduct[] {
+    if (this.genderFilter || this.sizeFilter) return [];
+    return this.products.filter(product => this.matchesText([product.name, product.description, product.category]));
+  }
+
+  clearFilters(): void {
+    this.searchText = '';
+    this.genderFilter = '';
+    this.sizeFilter = '';
+  }
+
+  private matchesText(fields: string[]): boolean {
+    const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const terms = normalize(this.searchText).split(/\s+/).filter(Boolean);
+    const haystack = normalize(fields.join(' '));
+    return terms.every(term => haystack.includes(term));
   }
 
   get isOwner(): boolean { return this.currentUser?.role === 'PROPIETARIO'; }
@@ -74,27 +111,14 @@ export class CatalogoPage {
       this.showBookingError('Selecciona fechas válidas. La fecha de inicio no puede ser anterior a hoy.');
       return;
     }
-    this.busy = true;
-    try {
-      const reservation = await this.reservationService.create(garment.id, this.bookingStartDate, this.bookingEndDate);
-      this.reservations = [...this.reservations, reservation];
-      this.bookingMessage = `Reserva de ${garment.name} guardada en la base de datos.`;
-      this.bookingMessageType = 'success';
-      this.closeBooking();
-    } catch (error) {
-      this.bookingMessageType = 'error';
-      if (error instanceof ApiError && error.status === 401) {
-        this.bookingMessage = 'Inicia sesión o crea una cuenta Cliente para guardar la reserva.';
-        this.bookingRequiresLogin = true;
-      } else if (error instanceof ApiError && error.status === 0) {
-        this.bookingMessage = 'No se pudo conectar con la API. Iníciala y verifica que Oracle esté configurado antes de reservar.';
-      } else {
-        this.bookingMessage = errorMessage(error);
-      }
-    } finally {
-      this.busy = false;
-      this.changeDetector.markForCheck();
+    if (this.currentUser && this.currentUser.role !== 'CLIENTE') {
+      this.showBookingError('Solo una cuenta Cliente puede reservar. Cierra sesión e ingresa con una cuenta Cliente.');
+      this.bookingRequiresLogin = true;
+      return;
     }
+    this.drafts.save({ garmentCode: garment.id, startDate: this.bookingStartDate, endDate: this.bookingEndDate });
+    this.closeBooking();
+    await this.router.navigateByUrl(this.currentUser ? '/pago' : '/usuario');
   }
 
   rentalDays(startDate: string, endDate: string): number {

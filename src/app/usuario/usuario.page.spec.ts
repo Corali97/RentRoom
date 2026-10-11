@@ -1,7 +1,8 @@
 import { vi } from 'vitest';
 import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
+import { BookingDraftService } from '../services/booking-draft.service';
 import { UsuarioPage } from './usuario.page';
 import { UsuarioPageModule } from './usuario.module';
 
@@ -22,7 +23,7 @@ describe('UsuarioPage: formularios conectados a Oracle/API', () => {
     await component.ionViewWillEnter();
     fixture.detectChanges(); await fixture.whenStable();
   });
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); sessionStorage.clear(); });
 
   it('actualiza la pantalla al enviar el formulario de inicio de sesión', async () => {
     for (const [id, value] of [['login-email', user.email], ['login-password', 'clave1234']]) {
@@ -38,6 +39,24 @@ describe('UsuarioPage: formularios conectados a Oracle/API', () => {
     await fixture.whenStable();
     expect(fixture.nativeElement.textContent).toContain('Mi perfil');
     expect(component.loginPassword).toBe('');
+  });
+
+  it('redirige al pago tras iniciar sesión como Cliente con una reserva pendiente', async () => {
+    const client = { ...user, role: 'CLIENTE' };
+    TestBed.inject(BookingDraftService).save({ garmentCode: 'POLERA_BASICA', startDate: '2030-01-01', endDate: '2030-01-02' });
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    component.loginEmail = client.email; component.loginPassword = 'clave1234';
+    fetchMock.mockImplementationOnce(() => reply({ user: client, message: 'Sesión iniciada.' }));
+    await component.submitLogin();
+    expect(navigate).toHaveBeenCalledWith('/pago');
+  });
+
+  it('no redirige al pago si no hay una reserva pendiente', async () => {
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    component.loginEmail = user.email; component.loginPassword = 'clave1234';
+    fetchMock.mockImplementationOnce(() => reply({ user: { ...user, role: 'CLIENTE' }, message: 'Sesión iniciada.' }));
+    await component.submitLogin();
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('no anuncia inicio de sesión cuando la red falla', async () => {

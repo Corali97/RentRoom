@@ -72,5 +72,6 @@ Thumbs.db
 # Configuracion privada de Oracle y dependencias de la API
 server/.env
 server/node_modules/
+server/data/
 
 server/integration-result.json

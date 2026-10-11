@@ -4,13 +4,14 @@
     <nav aria-label="Navegación principal">
       <a routerLink="/home">Inicio</a>
       <a routerLink="/catalogo" aria-current="page">Catálogo</a>
+      <a routerLink="/reportes">Reportes</a>
       <a routerLink="/usuario">Usuario</a>
     </nav>
   </header>
   <main class="catalog-page">
   <h1>Catálogo de prendas</h1>
   <p>Elige una prenda y las fechas en que quieres arrendarla.</p>
-  <p class="demo-note">Las reservas confirmadas se guardan en la base de datos. Para reservar, inicia sesión con una cuenta Cliente.</p>
+  <p class="demo-note">Al confirmar tu reserva iniciarás sesión (o crearás una cuenta Cliente) y pasarás a un pago simulado. La reserva se guarda en la base de datos al completar el pago.</p>
 
   <p *ngIf="loading" role="status">Cargando catálogo…</p>
   <p *ngIf="busy" role="status">Guardando cambios…</p>
@@ -19,8 +20,28 @@
   </p>
   <p *ngIf="bookingRequiresLogin"><a routerLink="/usuario">Iniciar sesión o crear cuenta Cliente</a></p>
 
+  <section class="catalog-filters" aria-label="Buscar y filtrar prendas">
+    <label class="filter-field filter-search">Buscar
+      <input type="search" name="search" placeholder="Ej: polera, chaleco…" [(ngModel)]="searchText">
+    </label>
+    <label class="filter-field">Género
+      <select name="gender" [(ngModel)]="genderFilter">
+        <option value="">Todos</option>
+        <option *ngFor="let gender of genderOptions" [value]="gender">{{ gender }}</option>
+      </select>
+    </label>
+    <label class="filter-field">Talla
+      <select name="size" [(ngModel)]="sizeFilter">
+        <option value="">Todas</option>
+        <option *ngFor="let size of sizeOptions" [value]="size">{{ size }}</option>
+      </select>
+    </label>
+    <button class="cancel-button filter-clear" type="button" [disabled]="!hasActiveFilters" (click)="clearFilters()">Limpiar filtros</button>
+  </section>
+  <p role="status" *ngIf="hasActiveFilters && !filteredGarments.length && !filteredProducts.length">No hay prendas que coincidan con tu búsqueda.</p>
+
   <section class="garment-grid" aria-label="Prendas disponibles">
-    <article class="garment-card" *ngFor="let garment of featuredGarments">
+    <article class="garment-card" *ngFor="let garment of filteredGarments">
       <div class="garment-illustration" aria-hidden="true">
         <span>{{ garment.id === 'POLERA_BASICA' ? '👕' : '🧥' }}</span>
       </div>
@@ -89,8 +110,10 @@
   <p role="status" *ngIf="message" [class]="messageType === 'error' ? 'ion-text-danger' : 'ion-text-success'"><strong>{{ message }}</strong></p>
   <p *ngIf="loadError" role="alert">{{ loadError }} <button type="button" (click)="refresh()" [disabled]="loading">Reintentar</button></p>
 
-  <section *ngIf="!loading && products.length" class="garment-grid" aria-label="Productos publicados">
-    <article *ngFor="let product of products" class="garment-card">
+  <p *ngIf="!loading && !loadError && !products.length">Aún no hay productos publicados por propietarios.</p>
+
+  <section *ngIf="!loading && filteredProducts.length" class="garment-grid" aria-label="Productos publicados">
+    <article *ngFor="let product of filteredProducts" class="garment-card">
       <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.name">
       <div class="garment-content">
         <p class="garment-category">{{ product.category }}</p>
@@ -106,6 +129,5 @@
       </div>
     </article>
   </section>
-  <p *ngIf="!loading && !loadError && !products.length">Aún no hay productos publicados por propietarios.</p>
   </main>
 </div>

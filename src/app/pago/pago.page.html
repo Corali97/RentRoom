@@ -1,0 +1,60 @@
+<div class="ion-page pay-shell">
+  <header class="pay-header">
+    <a class="pay-brand" routerLink="/home">RentRoom</a>
+    <nav aria-label="Navegación principal">
+      <a routerLink="/home">Inicio</a>
+      <a routerLink="/catalogo">Catálogo</a>
+      <a routerLink="/usuario">Usuario</a>
+    </nav>
+  </header>
+  <main class="pay-page">
+    <h1>Pago de la reserva</h1>
+    <p class="pay-note">Esta página simula un pago: no se realiza ningún cobro real y los datos de la tarjeta no se guardan ni se envían.</p>
+
+    <p *ngIf="loading" role="status">Cargando…</p>
+    <p *ngIf="busy" role="status">Procesando pago…</p>
+    <p role="status" *ngIf="message" [class]="messageType === 'error' ? 'ion-text-danger' : 'ion-text-success'"><strong>{{ message }}</strong></p>
+    <p *ngIf="canRetryCatalogue"><a routerLink="/catalogo">Elegir otras fechas</a></p>
+
+    <section *ngIf="reservation" class="pay-card" aria-label="Reserva confirmada">
+      <h2>¡Reserva confirmada!</h2>
+      <p><strong>{{ garmentName || 'Prenda' }}</strong></p>
+      <p>{{ reservation.startDate }} al {{ reservation.endDate }} ({{ reservation.rentalDays }} día(s))</p>
+      <p>Arriendo: {{ formatPrice(reservation.rentalTotal) }}</p>
+      <p>Garantía: {{ formatPrice(reservation.guarantee) }}</p>
+      <p>Total pagado: <strong>{{ formatPrice(reservation.total) }}</strong></p>
+      <a class="pay-button" routerLink="/catalogo">Volver al catálogo</a>
+    </section>
+
+    <ng-container *ngIf="!loading && !reservation && draft && user">
+      <section class="pay-card" aria-label="Resumen de la reserva">
+        <h2>Resumen</h2>
+        <p><strong>{{ garmentName }}</strong></p>
+        <p>{{ draft.startDate }} al {{ draft.endDate }}</p>
+        <p>{{ rentalDays }} día(s) × {{ formatPrice(rentalPricePerDay) }}: <strong>{{ formatPrice(rentalTotal) }}</strong></p>
+        <p>Garantía: <strong>{{ formatPrice(guaranteeAmount) }}</strong></p>
+        <p>Total a pagar: <strong>{{ formatPrice(total) }}</strong></p>
+      </section>
+
+      <form class="pay-card" (ngSubmit)="pay()" aria-label="Datos de pago simulado">
+        <h2>Datos de la tarjeta (simulación)</h2>
+        <label>Nombre del titular
+          <input name="cardName" autocomplete="off" [disabled]="busy" [(ngModel)]="cardName">
+        </label>
+        <label>Número de tarjeta
+          <input name="cardNumber" inputmode="numeric" autocomplete="off" placeholder="4242 4242 4242 4242" maxlength="19" [disabled]="busy" [(ngModel)]="cardNumber">
+        </label>
+        <div class="pay-row">
+          <label>Vencimiento
+            <input name="cardExpiry" autocomplete="off" placeholder="MM/AA" maxlength="5" [disabled]="busy" [(ngModel)]="cardExpiry">
+          </label>
+          <label>Código
+            <input name="cardCvv" type="password" inputmode="numeric" autocomplete="off" maxlength="3" [disabled]="busy" [(ngModel)]="cardCvv">
+          </label>
+        </div>
+        <button class="pay-button" type="submit" [disabled]="busy">Pagar {{ formatPrice(total) }}</button>
+        <button class="pay-cancel" type="button" [disabled]="busy" (click)="cancel()">Cancelar</button>
+      </form>
+    </ng-container>
+  </main>
+</div>

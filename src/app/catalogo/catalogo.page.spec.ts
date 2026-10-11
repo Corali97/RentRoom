@@ -1,7 +1,8 @@
 import { vi } from 'vitest';
 import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
+import { BookingDraftService } from '../services/booking-draft.service';
 import { CatalogoPage } from './catalogo.page';
 import { CatalogoPageModule } from './catalogo.module';
 import { RentRoomProduct } from '../services/product.service';
@@ -24,7 +25,7 @@ describe('CatalogoPage: persistencia y errores de API', () => {
     fixture = TestBed.createComponent(CatalogoPage);
     component = fixture.componentInstance;
   });
-  afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+  afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); sessionStorage.clear(); });
 
   async function openCatalogue(products: RentRoomProduct[] = [], user: typeof owner | typeof client | null = owner): Promise<void> {
     fetchMock.mockImplementationOnce(() => user ? reply({ user }) : reply({ message: 'Sin sesión' }, 401));
@@ -95,8 +96,35 @@ describe('CatalogoPage: persistencia y errores de API', () => {
     expect(text).toContain('20.000');
   });
 
-  it('envía la reserva a la API y muestra conflicto devuelto por Oracle', async () => {
+  it('filtra las prendas por texto, género y talla', async () => {
+    await openCatalogue([], null);
+    expect(component.filteredGarments).toHaveLength(2);
+    component.searchText = 'POLERA';
+    expect(component.filteredGarments.map(garment => garment.id)).toEqual(['POLERA_BASICA']);
+    component.searchText = '';
+    component.genderFilter = 'Mujer';
+    expect(component.filteredGarments.map(garment => garment.id)).toEqual(['CHALECO_TEJIDO']);
+    component.sizeFilter = 'M';
+    expect(component.filteredGarments).toHaveLength(0);
+    component.clearFilters();
+    expect(component.filteredGarments).toHaveLength(2);
+    expect(component.hasActiveFilters).toBe(false);
+  });
+
+  it('busca también en los productos de propietarios y los oculta al filtrar por talla o género', async () => {
+    await openCatalogue([product], null);
+    component.searchText = 'vestido';
+    expect(component.filteredProducts).toHaveLength(1);
+    component.searchText = 'zapatos';
+    expect(component.filteredProducts).toHaveLength(0);
+    component.searchText = '';
+    component.sizeFilter = 'S';
+    expect(component.filteredProducts).toHaveLength(0);
+  });
+
+  it('guarda el borrador y va al pago cuando el Cliente ya tiene sesión', async () => {
     await openCatalogue([], client);
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
     const garment = component.featuredGarments[0];
     const start = new Date(`${component.minDate}T00:00:00Z`);
     start.setUTCDate(start.getUTCDate() + 1);
@@ -109,29 +137,18 @@ describe('CatalogoPage: persistencia y errores de API', () => {
     expect(component.rentalDays(component.bookingStartDate, component.bookingEndDate)).toBe(2);
     expect(component.rentalTotal(component.bookingStartDate, component.bookingEndDate)).toBe(20000);
 
-    fetchMock.mockImplementationOnce(() => reply({ reservation: {
-      id: 99, garmentCode: garment.id, startDate: dateValue(start), endDate: dateValue(end),
-      rentalDays: 2, rentalTotal: 20000, guarantee: 20000, total: 40000,
-    } }, 201));
+    const previousCalls = fetchMock.mock.calls.length;
     await component.reserveGarment(garment);
-    expect(component.reservations).toHaveLength(1);
-    expect(fetchMock.mock.calls.at(-1)?.[0]).toBe('/api/sample-reservations');
-    expect(JSON.parse(String(fetchMock.mock.calls.at(-1)?.[1]?.body))).toEqual({
+    expect(navigate).toHaveBeenCalledWith('/pago');
+    expect(fetchMock.mock.calls).toHaveLength(previousCalls);
+    expect(TestBed.inject(BookingDraftService).get()).toEqual({
       garmentCode: garment.id, startDate: dateValue(start), endDate: dateValue(end),
     });
-
-    component.openBooking(garment);
-    component.bookingStartDate = dateValue(start);
-    component.bookingEndDate = dateValue(end);
-    fetchMock.mockImplementationOnce(() => reply({ message: 'La prenda ya está reservada durante esas fechas.' }, 409));
-    await component.reserveGarment(garment);
-    expect(component.reservations).toHaveLength(1);
-    expect(component.bookingMessage).toContain('ya está reservada');
-    expect(component.bookingMessageType).toBe('error');
   });
 
-  it('exige iniciar sesión para guardar una reserva', async () => {
+  it('redirige a iniciar sesión al confirmar la reserva sin sesión', async () => {
     await openCatalogue([], null);
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
     const garment = component.featuredGarments[0];
     component.openBooking(garment);
     const start = new Date(`${component.minDate}T00:00:00Z`);
@@ -139,10 +156,25 @@ describe('CatalogoPage: persistencia y errores de API', () => {
     const date = start.toISOString().slice(0, 10);
     component.bookingStartDate = date;
     component.bookingEndDate = date;
-    fetchMock.mockImplementationOnce(() => reply({ message: 'Inicia sesión para continuar.' }, 401));
     await component.reserveGarment(garment);
-    expect(component.bookingRequiresLogin).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('/usuario');
+    expect(TestBed.inject(BookingDraftService).get()?.garmentCode).toBe(garment.id);
+  });
+
+  it('no permite reservar con una cuenta Propietario', async () => {
+    await openCatalogue([], owner);
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    const garment = component.featuredGarments[0];
+    component.openBooking(garment);
+    const start = new Date(`${component.minDate}T00:00:00Z`);
+    start.setUTCDate(start.getUTCDate() + 1);
+    const date = start.toISOString().slice(0, 10);
+    component.bookingStartDate = date;
+    component.bookingEndDate = date;
+    await component.reserveGarment(garment);
+    expect(navigate).not.toHaveBeenCalled();
     expect(component.bookingMessage).toContain('cuenta Cliente');
+    expect(TestBed.inject(BookingDraftService).get()).toBeNull();
   });
 
   it('rechaza fechas pasadas o rangos invertidos sin enviar la solicitud', async () => {

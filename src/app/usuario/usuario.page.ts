@@ -1,5 +1,7 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService, RentRoomUser, UserRole } from '../services/auth.service';
+import { BookingDraftService } from '../services/booking-draft.service';
 import { ApiError, errorMessage } from '../services/api';
 
 @Component({
@@ -23,7 +25,20 @@ export class UsuarioPage {
   loading = true;
   busy = false;
 
-  constructor(private authService: AuthService, private changeDetector: ChangeDetectorRef) {}
+  constructor(
+    private authService: AuthService,
+    private drafts: BookingDraftService,
+    private router: Router,
+    private changeDetector: ChangeDetectorRef,
+  ) {}
+
+  get hasPendingBooking(): boolean { return this.drafts.get() !== null; }
+
+  private async continueBooking(user: RentRoomUser): Promise<void> {
+    if (!this.drafts.get()) return;
+    if (user.role === 'CLIENTE') await this.router.navigateByUrl('/pago');
+    else this.showMessage('Tu reserva pendiente requiere una cuenta Cliente. Cierra sesión e ingresa con una cuenta Cliente.', 'error');
+  }
 
   async ionViewWillEnter(): Promise<void> {
     this.loading = true;
@@ -56,6 +71,7 @@ export class UsuarioPage {
       this.profileName = result.user.fullName;
       this.loginPassword = '';
       this.showMessage(result.message, 'success');
+      await this.continueBooking(result.user);
     } catch (error) {
       this.showMessage(errorMessage(error), 'error');
     } finally {
@@ -83,6 +99,7 @@ export class UsuarioPage {
       this.profileName = result.user.fullName;
       this.registerPassword = '';
       this.showMessage(result.message, 'success');
+      await this.continueBooking(result.user);
     } catch (error) {
       this.showMessage(errorMessage(error), 'error');
     } finally {

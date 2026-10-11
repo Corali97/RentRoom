@@ -29,6 +29,7 @@
       </ion-segment>
 
       <p role="status" *ngIf="message" [class]="messageType === 'success' ? 'ion-text-success' : 'ion-text-danger'">{{ message }}</p>
+      <p role="status" *ngIf="hasPendingBooking"><strong>Inicia sesión o crea una cuenta Cliente para continuar con el pago de tu reserva.</strong></p>
 
       <form *ngIf="authMode === 'login'; else registerForm" (ngSubmit)="submitLogin()">
         <div class="form-heading"><h2>Bienvenido de vuelta</h2><p>Ingresa tus datos para continuar.</p></div>
