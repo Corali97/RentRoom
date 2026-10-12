@@ -9,7 +9,7 @@
   </ion-toolbar>
 </ion-header>
 <ion-content><div class="ion-padding">
-<h1>Catálogo de productos</h1><p>Explora productos disponibles para arriendo.</p>
+<h1>Catálogo de productos</h1><ion-button routerLink="/reservas" fill="outline">Ver disponibilidad y reservar</ion-button><p>Explora productos disponibles para arriendo.</p>
 <p *ngIf="loading" role="status"><ion-spinner name="crescent"></ion-spinner> Cargando catálogo…</p>
 <p *ngIf="busy" role="status">Guardando cambios…</p>
 <ion-card *ngIf="isOwner && !loading"><ion-card-header><ion-card-title>{{ editingId ? 'Editar producto' : 'Publicar producto' }}</ion-card-title></ion-card-header><ion-card-content>
