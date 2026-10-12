@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { reservationDispatch } from './reservation-routes.mjs';
 import { pathToFileURL } from 'node:url';
 import oracledb from 'oracledb';
 import { ApiError, schemaName, allowedOrigins, requireOrigin, objectBody, registerData, email, password, fullName, productData, productId } from './validation.mjs';
@@ -258,6 +259,8 @@ export async function startServer({ port, host, env = process.env, pool: supplie
         return { body: { product, message: 'Producto actualizado.' } };
       });
     }
+    const reservationResult = await reservationDispatch({method,pathname,req,connectionWork,currentUser,query,table,schema,readJson});
+    if (reservationResult !== null) return reservationResult;
     throw new ApiError(404, 'La ruta solicitada no existe.');
   }
 
