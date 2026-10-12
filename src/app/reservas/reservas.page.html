@@ -1,0 +1,49 @@
+<ion-header><ion-toolbar color="primary"><ion-title>RentRoom - Reservas</ion-title></ion-toolbar></ion-header>
+<ion-content class="ion-padding">
+  <ion-button routerLink="/catalogo" fill="clear">Volver al catálogo</ion-button>
+  <h1>Reservas y arriendos</h1>
+  <p *ngIf="loading" role="status"><ion-spinner name="crescent"></ion-spinner> Cargando...</p>
+  <p *ngIf="error" role="alert" class="ion-text-danger">{{ error }}</p>
+  <p *ngIf="message" role="status" class="ion-text-success">{{ message }}</p>
+  <ion-card *ngIf="!loading && !user"><ion-card-content>
+    Inicia sesión en <a routerLink="/usuario">Usuario</a> para reservar o gestionar arriendos.
+  </ion-card-content></ion-card>
+  <ion-card *ngIf="!loading && user?.role === 'CLIENTE'">
+    <ion-card-header><ion-card-title>Solicitar reserva</ion-card-title></ion-card-header>
+    <ion-card-content>
+      <ion-item><ion-select label="Producto" labelPlacement="stacked" [(ngModel)]="productId"
+       (ionChange)="checkAvailability()" [disabled]="busy">
+        <ion-select-option *ngFor="let product of products" [value]="product.id">
+          {{ product.name }} - CLP {{ product.rentalValue }}/día
+        </ion-select-option>
+      </ion-select></ion-item>
+      <p><strong>Fechas ocupadas:</strong></p>
+      <p *ngIf="!occupied.length">Sin períodos ocupados.</p>
+      <p *ngFor="let period of occupied">{{ period.startDate }} a {{ period.endDate }}</p>
+      <ion-item><ion-label>Inicio <input type="date" aria-label="Fecha inicial" [(ngModel)]="startDate" [disabled]="busy"></ion-label></ion-item>
+      <ion-item><ion-label>Término <input type="date" aria-label="Fecha final" [(ngModel)]="endDate" [disabled]="busy"></ion-label></ion-item>
+      <ion-button expand="block" [disabled]="busy || !productId" (click)="reserve()">Solicitar reserva</ion-button>
+    </ion-card-content>
+  </ion-card>
+  <h2 *ngIf="user?.role === 'CLIENTE'">Mis reservas</h2>
+  <h2 *ngIf="user?.role === 'PROPIETARIO'">Solicitudes de mis productos</h2>
+  <ion-card *ngFor="let r of reservations">
+    <ion-card-header><ion-card-title>{{ r.productName }}</ion-card-title>
+      <ion-card-subtitle>{{ r.startDate }} a {{ r.endDate }}</ion-card-subtitle></ion-card-header>
+    <ion-card-content>
+      <p><strong>Estado:</strong> {{ r.status }}</p>
+      <ion-button size="small" fill="outline" (click)="showHistory(r)">Ver historial</ion-button>
+      <ion-button *ngIf="user?.role === 'CLIENTE' && (r.status === 'PENDIENTE' || r.status === 'CONFIRMADA')"
+        size="small" fill="outline" color="danger" [disabled]="busy" (click)="cancel(r)">Cancelar</ion-button>
+      <ng-container *ngIf="user?.role === 'PROPIETARIO'">
+        <ion-button *ngIf="r.status === 'PENDIENTE'" [disabled]="busy" size="small" (click)="confirm(r)">Confirmar</ion-button>
+        <ion-button *ngIf="r.status === 'CONFIRMADA'" [disabled]="busy" size="small" (click)="track(r,'ENTREGAR')">Entregar</ion-button>
+        <ion-button *ngIf="r.status === 'CONFIRMADA'" [disabled]="busy" size="small" (click)="track(r,'DEVOLVER')">Devolver</ion-button>
+        <ion-button *ngIf="r.status === 'CONFIRMADA' || r.status === 'FINALIZADA'" [disabled]="busy" size="small" (click)="track(r,'DANO')">Registrar daño</ion-button>
+        <ion-button *ngIf="r.status === 'FINALIZADA'" [disabled]="busy" size="small" (click)="track(r,'LIBERAR_GARANTIA')">Liberar garantía</ion-button>
+        <ion-button *ngIf="r.status === 'FINALIZADA'" [disabled]="busy" color="warning" size="small" (click)="track(r,'RETENER_GARANTIA')">Retener garantía</ion-button>
+      </ng-container>
+    </ion-card-content>
+  </ion-card>
+  <p *ngIf="!loading && user && !reservations.length">No hay reservas registradas.</p>
+</ion-content>
