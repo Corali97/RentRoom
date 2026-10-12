@@ -1,0 +1,24 @@
+name: RentRoom - pruebas
+on:
+  push:
+    branches: [main, feature/semana9-reservas]
+  pull_request:
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar frontend
+        run: npm ci
+      - name: Instalar API
+        run: npm --prefix server ci
+      - name: Ejecutar pruebas API
+        run: npm run test:api
+      - name: Ejecutar pruebas frontend
+        run: npm test -- --watch=false
+      - name: Compilar Angular
+        run: npm run build
