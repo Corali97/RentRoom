@@ -38,7 +38,7 @@ export async function reservationDispatch({method,pathname,req,connectionWork,cu
   });
   try {
     if (method === 'GET' && pathname === '/api/reservations') {
-      return withUser(async (c,u) => {
+      return await withUser(async (c,u) => {
         if (u.role !== 'CLIENTE') throw new ApiError(403,'Solo clientes pueden consultar sus reservas.');
         const r = await query(c,
           'SELECT R.ID_RESERVA,R.ID_PRODUCTO,P.NOMBRE AS PRODUCTO,' +
@@ -49,7 +49,7 @@ export async function reservationDispatch({method,pathname,req,connectionWork,cu
       });
     }
     if (method === 'GET' && pathname === '/api/owner/reservations') {
-      return withUser(async (c,u) => {
+      return await withUser(async (c,u) => {
         if (u.role !== 'PROPIETARIO') throw new ApiError(403,'Solo propietarios pueden consultar solicitudes.');
         const r = await query(c,
           'SELECT R.ID_RESERVA,R.ID_PRODUCTO,P.NOMBRE AS PRODUCTO,' +
@@ -61,7 +61,7 @@ export async function reservationDispatch({method,pathname,req,connectionWork,cu
     }
     if (method === 'GET' && availabilityPath) {
       const id=productId(availabilityPath[1]);
-      return connectionWork(async c => {
+      return await connectionWork(async c => {
         const product=await query(c,'SELECT ESTADO FROM '+table('PRODUCTO')+
           " WHERE ID_PRODUCTO=:id AND ESTADO='DISPONIBLE'",{id});
         if (!product.rows.length) throw new ApiError(404,'Producto no disponible.');
@@ -77,7 +77,7 @@ export async function reservationDispatch({method,pathname,req,connectionWork,cu
       if (!validDate(body.startDate)||!validDate(body.endDate)||body.startDate>body.endDate) {
         throw new ApiError(400,'Selecciona fechas válidas y ordenadas.');
       }
-      return withUser(async (c,u) => {
+      return await withUser(async (c,u) => {
         if (u.role!=='CLIENTE') throw new ApiError(403,'Solo clientes pueden reservar.');
         const result=await query(c,
           'BEGIN '+schema+'.SP_CREAR_RESERVA(:productId,:clientId,'+
@@ -90,7 +90,7 @@ export async function reservationDispatch({method,pathname,req,connectionWork,cu
     }
     if (method === 'POST' && reservationPath && reservationPath[2]==='cancel') {
       const id=productId(reservationPath[1]);
-      return withUser(async (c,u) => {
+      return await withUser(async (c,u) => {
         if (u.role!=='CLIENTE') throw new ApiError(403,'Solo el cliente puede cancelar.');
         await query(c,'BEGIN '+schema+'.SP_CANCELAR_RESERVA(:id,:userId); END;',{id,userId:u.id});
         await c.commit();
@@ -99,7 +99,7 @@ export async function reservationDispatch({method,pathname,req,connectionWork,cu
     }
     if (method === 'POST' && ownerPath && ownerPath[2]==='confirm') {
       const id=productId(ownerPath[1]);
-      return withUser(async (c,u) => {
+      return await withUser(async (c,u) => {
         if (u.role!=='PROPIETARIO') throw new ApiError(403,'Solo el propietario puede confirmar.');
         await query(c,'BEGIN '+schema+'.SP_CONFIRMAR_RESERVA(:id,:ownerId); END;',{id,ownerId:u.id});
         await c.commit();
@@ -112,7 +112,7 @@ export async function reservationDispatch({method,pathname,req,connectionWork,cu
           (body.detail!==undefined&&(typeof body.detail!=='string'||body.detail.length>500))) {
         throw new ApiError(400,'Acción o descripción inválida.');
       }
-      return withUser(async (c,u) => {
+      return await withUser(async (c,u) => {
         if (u.role!=='PROPIETARIO') throw new ApiError(403,'Solo el propietario registra entregas.');
         await query(c,'BEGIN '+schema+'.SP_GESTIONAR_ARRIENDO(:id,:ownerId,:action,:detail); END;',
           {id,ownerId:u.id,action:body.action,detail:body.detail??null});
@@ -122,7 +122,7 @@ export async function reservationDispatch({method,pathname,req,connectionWork,cu
     }
     if (method === 'GET' && reservationPath && reservationPath[2]==='history') {
       const id=productId(reservationPath[1]);
-      return withUser(async (c,u) => {
+      return await withUser(async (c,u) => {
         const access=await query(c,
           'SELECT R.ID_RESERVA FROM '+table('RESERVA')+' R JOIN '+table('PRODUCTO')+
           ' P ON P.ID_PRODUCTO=R.ID_PRODUCTO WHERE R.ID_RESERVA=:id '+
